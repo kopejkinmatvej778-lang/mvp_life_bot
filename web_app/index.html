@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>MVP Life OS Elite</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- === HEADER === -->
+    <div class="fixed-header">
+        <div class="header-left">
+            <h2>MVP<span style="color:var(--primary)">OS</span></h2>
+        </div>
+        <button class="burger-btn" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- === SIDE MENU (BURGER) === -->
+    <div class="menu-overlay" id="menu-overlay" onclick="toggleMenu()"></div>
+    <div class="side-menu" id="side-menu">
+        <div class="menu-header">
+            <h3>MVP<span style="color:var(--primary)">OS</span></h3>
+            <button class="close-menu" onclick="toggleMenu()">✕</button>
+        </div>
+        <div class="menu-list">
+            <!-- GYM IS ONLY HERE -->
+            <div class="menu-item" onclick="toggleMenu(); switchTab('gym')">
+                <i class="fa-solid fa-dumbbell"></i> <span data-i18n="side_gym">Спортивный Зал</span>
+            </div>
+
+            <div class="menu-item" onclick="toggleMenu(); switchTab('mind')">
+                <i class="fa-solid fa-brain"></i> <span data-i18n="side_meditation">Медитации</span>
+            </div>
+            <div class="menu-item" onclick="toggleMenu(); switchTab('finance')">
+                <i class="fa-solid fa-wallet"></i> <span data-i18n="side_finance">Финансы</span>
+            </div>
+            <div class="menu-item" onclick="toggleMenu(); switchTab('settings')">
+                <i class="fa-solid fa-gear"></i> <span data-i18n="side_settings">Настройки</span>
+            </div>
+        </div>
+        <div class="menu-footer">System v5.1 (RU)</div>
+    </div>
+
+    <!-- === TAB 1: ГЛАВНАЯ (HOME) === -->
+    <div id="tab-home" class="tab-content active" style="padding-top: 80px;">
+        <!-- RINGS -->
+        <h3 class="section-label" data-i18n="home_balance">БАЛАНС</h3>
+        <div class="three-rings-container">
+            <div class="ring-item">
+                <div class="ring-wrap"><svg viewBox="0 0 100 100">
+                        <circle class="bg-c" cx="50" cy="50" r="45" />
+                        <circle id="ring-body" class="val-c" cx="50" cy="50" r="45" stroke="#00ccff" />
+                    </svg><i class="fa-solid fa-person-running ring-icon"></i></div>
+                <span data-i18n="ring_body">ТЕЛО</span>
+            </div>
+            <div class="ring-item">
+                <div class="ring-wrap"><svg viewBox="0 0 100 100">
+                        <circle class="bg-c" cx="50" cy="50" r="45" />
+                        <circle id="ring-mind" class="val-c" cx="50" cy="50" r="45" stroke="#9900ff" />
+                    </svg><i class="fa-solid fa-brain ring-icon"></i></div>
+                <span data-i18n="ring_mind">ДУХ</span>
+            </div>
+            <div class="ring-item">
+                <div class="ring-wrap"><svg viewBox="0 0 100 100">
+                        <circle class="bg-c" cx="50" cy="50" r="45" />
+                        <circle id="ring-wealth" class="val-c" cx="50" cy="50" r="45" stroke="#00ff88" />
+                    </svg><i class="fa-solid fa-coins ring-icon"></i></div>
+                <span data-i18n="ring_wealth">ДЕНЬГИ</span>
+            </div>
+        </div>
+
+        <!-- RITUALS & MISSIONS -->
+        <div style="margin-top:30px">
+            <div class="section-header-row">
+                <h3 class="section-label" style="margin:0" data-i18n="home_rituals">РИТУАЛЫ</h3><button
+                    class="add-mini-btn" onclick="addMissionPrompt('ritual')">+</button>
+            </div>
+            <div class="task-list" id="rituals-list">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <div style="margin-top:30px">
+            <div class="section-header-row">
+                <h3 class="section-label" style="margin:0" data-i18n="home_missions">ЦЕЛИ НА ДЕНЬ</h3>
+                <button class="add-mini-btn" onclick="openAddMissionModal()">+</button>
+            </div>
+            <div class="task-list" id="missions-list">
+                <div class="empty-state" data-i18n="home_no_tasks">Нет задач</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ... (rest of tabs) ... -->
+
+    <!-- === MODAL: ADD MISSION === -->
+    <div id="modal-add-mission" class="modal-overlay"
+        style="z-index: 3100; justify-content:center; align-items:center; background:rgba(0,0,0,0.8);">
+        <div
+            style="background:#1c1c1e; padding:20px; border-radius:20px; width:80%; max-width:300px; border:1px solid #333;">
+            <h3 style="margin-top:0; text-align:center;" data-i18n="modal_new_mission">НОВАЯ ЦЕЛЬ</h3>
+            <div style="position:relative; margin-bottom:15px;">
+                <input type="text" id="new-mission-input" placeholder="Введите цель..." style="padding-right:40px;"
+                    data-i18n="placeholder_mission" data-i18n-attr="placeholder">
+                <button onclick="startVoiceInput()"
+                    style="position:absolute; right:5px; top:5px; background:none; border:none; color:#0A84FF; font-size:18px;"><i
+                        class="fa-solid fa-microphone"></i></button>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-secondary" onclick="closeAddMissionModal()" style="flex:1; margin:0;"
+                    data-i18n="cancel">ОТМЕНА</button>
+                <button class="btn-primary" onclick="confirmAddMission()" style="flex:1; margin:0;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === TAB 2: ПИТАНИЕ (FOOD) === -->
+    <div id="tab-food" class="tab-content" style="padding-top: 80px;">
+        <div class="calorie-hero">
+            <div class="cal-big" id="disp-calories">0</div>
+            <div class="cal-sub" data-i18n="food_kcal_norm">ККАЛ / ДЕНЬ (НОРМА)</div>
+        </div>
+        <div style="text-align:center; color:#555; font-size:14px; margin-top:-20px; margin-bottom:30px;"
+            data-i18n="food_calc_basis">
+            Расчет на основе вашего профиля
+        </div>
+
+        <div class="ios-group">
+            <!-- Placeholder for future macros -->
+            <div class="ios-item" onclick="alert('Скоро...')">
+                <div class="ios-label">Белки</div>
+                <div class="ios-value">0 г</div>
+            </div>
+            <div class="ios-item" onclick="alert('Скоро...')">
+                <div class="ios-label">Жиры</div>
+                <div class="ios-value">0 г</div>
+            </div>
+            <div class="ios-item" onclick="alert('Скоро...')">
+                <div class="ios-label">Углеводы</div>
+                <div class="ios-value">0 г</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === TAB 3: ПРОФИЛЬ (PROFILE) === -->
+    <div id="tab-profile" class="tab-content" style="padding-top: 60px; text-align:center;">
+
+        <!-- Avatar & Name -->
+        <div style="margin-bottom:30px;">
+            <div
+                style="width:100px; height:100px; border-radius:50%; margin:0 auto; overflow:hidden; border:2px solid var(--primary); background:#1c1c1e; display:flex; align-items:center; justify-content:center;">
+                <img id="user-avatar-img" src="" alt=""
+                    style="width:100%; height:100%; object-fit:cover; display:none;">
+                <i id="user-avatar-placeholder" class="fa-solid fa-user" style="font-size:40px; color:#555;"></i>
+            </div>
+            <h2 id="user-name-display" style="margin:15px 0 5px; font-size:22px;">Пользователь</h2>
+            <div style="color:#666; font-size:14px;">MVP Elite User</div>
+        </div>
+
+        <!-- Group 1: Physics -->
+        <div style="text-align:left; padding-left:25px; margin-bottom:5px; color:#666; font-size:13px; text-transform:uppercase;"
+            data-i18n="profile_physics">
+            Тело</div>
+        <div class="ios-group">
+            <div class="ios-item" onclick="editStat('weight')">
+                <div class="ios-label" data-i18n="profile_weight">Вес</div>
+                <div class="ios-value"><span id="disp-weight">0</span> кг <i
+                        class="fa-solid fa-chevron-right ios-arrow"></i></div>
+            </div>
+            <div class="ios-item" onclick="editStat('height')">
+                <div class="ios-label" data-i18n="profile_height">Рост</div>
+                <div class="ios-value"><span id="disp-height">0</span> см <i
+                        class="fa-solid fa-chevron-right ios-arrow"></i></div>
+            </div>
+            <div class="ios-item" onclick="editStat('age')">
+                <div class="ios-label" data-i18n="profile_age">Возраст</div>
+                <div class="ios-value"><span id="disp-age">25</span> лет <i
+                        class="fa-solid fa-chevron-right ios-arrow"></i></div>
+            </div>
+        </div>
+
+        <!-- Group 2: Goals -->
+        <div style="text-align:left; padding-left:25px; margin-bottom:5px; color:#666; font-size:13px; text-transform:uppercase;"
+            data-i18n="profile_strategy">
+            Стратегия</div>
+        <div class="ios-group">
+            <div class="ios-item" onclick="openSelector('goal')">
+                <div class="ios-label" data-i18n="profile_goal">Цель</div>
+                <div class="ios-value"><span id="disp-goal">Похудение</span> <i
+                        class="fa-solid fa-chevron-right ios-arrow"></i></div>
+            </div>
+            <div class="ios-item" onclick="openSelector('sport')">
+                <div class="ios-label" data-i18n="profile_activity">Активность</div>
+                <div class="ios-value"><span id="disp-sport">Нет</span> <i
+                        class="fa-solid fa-chevron-right ios-arrow"></i></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- === ACTION SHEET: GOAL === -->
+    <div id="sheet-goal" class="action-sheet-overlay" onclick="closeSelector('goal')">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="action-title">ВЫБЕРИТЕ ЦЕЛЬ</div>
+            <div class="action-option" onclick="setProfileVal('goal','lose')">Похудение</div>
+            <div class="action-option" onclick="setProfileVal('goal','main')">Баланс</div>
+            <div class="action-option" onclick="setProfileVal('goal','gain')">Набор массы</div>
+            <div class="action-option cancel" onclick="closeSelector('goal')">Отмена</div>
+        </div>
+    </div>
+
+    <!-- === ACTION SHEET: SPORT === -->
+    <div id="sheet-sport" class="action-sheet-overlay" onclick="closeSelector('sport')">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div class="action-title">ОСНОВНОЙ СПОРТ</div>
+            <div class="action-option" onclick="setProfileVal('sport','none')">Нет</div>
+            <div class="action-option" onclick="setProfileVal('sport','gym')">Зал</div>
+            <div class="action-option" onclick="setProfileVal('sport','basketball')">Баскетбол</div>
+            <div class="action-option" onclick="setProfileVal('sport','boxing')">Бокс</div>
+            <div class="action-option" onclick="setProfileVal('sport','football')">Футбол</div>
+            <div class="action-option cancel" onclick="closeSelector('sport')">Отмена</div>
+        </div>
+    </div>
+
+    <!-- === HIDDEN TABS (BURGER ONLY) === -->
+
+    <!-- GYM (ЗАЛ) -->
+    <!-- GYM (ЗАЛ) -->
+    <div id="tab-gym" class="tab-content" style="padding-top: 60px;">
+        <!-- Premium Header -->
+        <div class="page-header-row">
+            <button class="icon-back-btn" onclick="switchTab('home')">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <h2 style="margin:0; font-size:24px;">СПОРТЗАЛ</h2>
+            <div style="width:40px;"></div> <!-- Spacer for centering -->
+        </div>
+
+        <div style="margin-top: 20px;">
+            <h3 class="section-label">МОИ ПРОГРАММЫ</h3>
+            <div id="my-programs-grid" class="sport-grid">
+                <!-- Add Card (Will be styled in CSS) -->
+                <div onclick="openCatalog()" class="add-prog-card">
+                    <div class="add-icon-circle">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <span>Добавить программу</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIND -->
+    <div id="tab-mind" class="tab-content" style="padding-top: 80px;">
+        <button class="btn-secondary" onclick="switchTab('home')">← На Главную</button>
+        <h2>МЕДИТАЦИИ</h2>
+        <div class="program-list">
+            <div class="program-card">
+                <div class="prog-icon">🧘</div>
+                <div>
+                    <div class="card-title">Утренний фокус</div>
+                    <div class="card-desc">10 мин • Ясность</div>
+                </div>
+            </div>
+            <div class="program-card">
+                <div class="prog-icon">🌙</div>
+                <div>
+                    <div class="card-title">Глубокий сон</div>
+                    <div class="card-desc">20 мин • Восстановление</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FINANCE -->
+    <div id="tab-finance" class="tab-content" style="padding-top: 80px;">
+        <button class="btn-secondary" onclick="switchTab('home')">← На Главную</button>
+        <h2>ФИНАНСЫ</h2>
+        <div class="hero-card">
+            <div class="big-num" style="color:#00ff88">$0</div>
+        </div>
+    </div>
+
+    <!-- === TAB 4: НАСТРОЙКИ (SETTINGS) === -->
+    <div id="tab-settings" class="tab-content" style="padding-top: 60px; padding-bottom: 150px;">
+        <h2 style="text-align:center; margin-bottom:30px;" data-i18n="settings_title">НАСТРОЙКИ</h2>
+
+        <div style="text-align:left; padding-left:10px; margin-bottom:15px; color:#666; font-size:13px; text-transform:uppercase;"
+            data-i18n="settings_app_section">Приложение</div>
+
+        <!-- Setting: Language -->
+        <div class="setting-row">
+            <div class="setting-label" data-i18n="settings_lang">Язык</div>
+            <div class="segmented-control">
+                <div id="seg-lang-ru" class="segment-opt active" onclick="setSetting('lang', 'ru')"
+                    data-i18n="settings_lang_ru">Русский</div>
+                <div id="seg-lang-en" class="segment-opt" onclick="setSetting('lang', 'en')"
+                    data-i18n="settings_lang_en">English</div>
+            </div>
+        </div>
+
+        <!-- Setting: Theme -->
+        <div class="setting-row">
+            <div class="setting-label" data-i18n="settings_theme">Тема</div>
+            <div class="segmented-control">
+                <div id="seg-theme-dark" class="segment-opt active" onclick="setSetting('theme', 'dark')"
+                    data-i18n="settings_theme_dark">Тёмная</div>
+                <div id="seg-theme-light" class="segment-opt" onclick="setSetting('theme', 'light')"
+                    data-i18n="settings_theme_light">Светлая</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;"></div>
+
+        <div class="ios-group">
+            <div class="ios-item" onclick="window.open('https://t.me/mvp_support', '_blank')">
+                <div class="ios-label" style="color:var(--primary);" data-i18n="settings_support">Поддержка</div>
+                <div class="ios-value"><i class="fa-solid fa-arrow-up-right-from-square ios-arrow"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === BOTTOM NAV === -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home')">
+            <i class="fa-solid fa-house"></i>
+        </div>
+        <div class="nav-item" onclick="switchTab('profile')">
+            <i class="fa-solid fa-user"></i>
+        </div>
+        <div class="nav-item" onclick="switchTab('food')">
+            <i class="fa-solid fa-apple-whole"></i>
+        </div>
+        <div class="nav-item" onclick="switchTab('settings')">
+            <i class="fa-solid fa-gear"></i>
+        </div>
+    </div>
+    <!-- === MODALS === -->
+    <div id="modal-catalog" class="modal-overlay">
+        <div class="modal-header">
+            <div class="modal-title">БИБЛИОТЕКА ПРОГРАММ</div><button class="back-btn"
+                onclick="closeCatalog()">✕</button>
+        </div>
+        <div class="modal-content">
+            <h3>АКАДЕМИИ (3 МЕСЯЦА)</h3>
+            <div class="sport-grid" id="catalog-academies"></div>
+            <h3>СПЕЦ. ПРОГРАММЫ</h3>
+            <div class="program-list" id="catalog-general"></div>
+        </div>
+    </div>
+
+    <div id="modal-academy" class="modal-overlay">
+        <div class="modal-header">
+            <div class="modal-title" id="m-title">Title</div><button class="back-btn"
+                onclick="closeWorkoutModal()">✕</button>
+        </div>
+        <div class="modal-content" id="m-body"></div>
+        <button id="toggle-prog-btn" class="fab-btn" onclick="toggleMyProgram()"><i class="fa-solid fa-plus"></i>
+            ДОБАВИТЬ</button>
+    </div>
+
+    <script src="workouts.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

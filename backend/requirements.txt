@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+openai
+pydantic
+python-multipart
+aiogram
+apscheduler
+jinja2
+python-dotenv

@@ -1,0 +1,3908 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MVP Life OS Elite</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =========================================
+           1. CORE VARIABLES & RESET
+           ========================================= */
+        :root {
+            --primary: #007AFF;
+            --primary-dark: #0056b3;
+            --accent: #FFD60A;
+            --danger: #FF375F;
+            --success: #30D158;
+            --bg-body: #000000;
+            --bg-card: #1c1c1e;
+            --bg-card-hover: #2c2c2e;
+            --text-main: #ffffff;
+            --text-secondary: #8e8e93;
+            --border-color: #38383a;
+            --radius-l: 20px;
+            --radius-m: 16px;
+            --radius-s: 12px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            overscroll-behavior-y: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           2. TYPOGRAPHY & UTILS
+           ========================================= */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        p {
+            margin: 0;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #FFF 0%, #AAA 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* =========================================
+           3. ANIMATIONS
+           ========================================= */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(0, 122, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 122, 255, 0);
+            }
+        }
+
+        @keyframes orbPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: scale(1.15);
+                opacity: 0.9;
+                box-shadow: 0 0 50px rgba(0, 122, 255, 0.6);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .animate-slide {
+            animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* =========================================
+           4. COMPONENTS: BUTTONS & INPUTS
+           ========================================= */
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-l);
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-m);
+            padding: 16px;
+            color: #fff;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+        }
+
+        /* =========================================
+           5. LAYOUT: HEADER & NAV
+           ========================================= */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .header-logo span {
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .burger-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Center icon */
+        }
+
+        .ring-icon {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            z-index: 2;
+        }
+
+        .ring::after {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            background: var(--bg-body);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            /* Wider menu */
+            height: 70px;
+            padding: 0 20px;
+            background: rgba(20, 20, 22, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 2000;
+        }
+
+
+
+        .nav-item {
+            color: var(--text-secondary);
+            font-size: 22px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .nav-item.active {
+            background: rgba(0, 122, 255, 0.2);
+            color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 122, 255, 0.4);
+            transform: translateY(-4px) scale(1.1);
+            border: 1px solid rgba(0, 122, 255, 0.3);
+        }
+
+        /* =========================================
+           6. MENU DRAWER
+           ========================================= */
+        .menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            bottom: 0;
+            width: 280px;
+            background: #151517;
+            z-index: 2001;
+            transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            padding: 30px 20px;
+            border-left: 1px solid #333;
+        }
+
+        .side-menu.active {
+            right: 0;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-item {
+            padding: 15px 0;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* =========================================
+           7. HOME TAB: RINGS & TASKS
+           ========================================= */
+        .tab-content {
+            display: none;
+            padding-top: 80px;
+            padding-bottom: 120px;
+            min-height: 100vh;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .rings-wrapper {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 0;
+        }
+
+        .ring-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ring-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-item {
+            background: var(--bg-card);
+            padding: 18px;
+            border-radius: var(--radius-m);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-item:active {
+            transform: scale(0.98);
+            background: var(--bg-card-hover);
+        }
+
+        .checkbox {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .task-item.completed .checkbox {
+            background: var(--success);
+            border-color: var(--success);
+            transform: scale(1.1);
+        }
+
+        .task-item.completed .task-content {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .task-item.ai-task {
+            background: linear-gradient(135deg, rgba(28, 28, 30, 1) 0%, rgba(35, 35, 45, 1) 100%);
+            border: 1px solid rgba(0, 122, 255, 0.3);
+        }
+
+        .task-item.ai-task::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        /* =========================================
+           8. FOOD TAB
+           ========================================= */
+        .calorie-card {
+            background: var(--bg-card);
+            margin: 0 10px;
+            padding: 30px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cal-big {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .cal-sub {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+        }
+
+        .macro-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin: 20px 10px;
+        }
+
+        .macro-item {
+            background: #151517;
+            padding: 15px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #222;
+        }
+
+        .camera-trigger {
+            background: linear-gradient(135deg, #0A84FF 0%, #007AFF 100%);
+            height: 60px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            margin: 0 10px 10px;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+        }
+
+        /* =========================================
+           9. PROFILE TAB
+           ========================================= */
+        .profile-header {
+            text-align: center;
+            padding: 20px 0 40px;
+        }
+
+        .avatar-frame {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            background: #000;
+            border: 4px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #555;
+        }
+
+        .stats-block {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 10px 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .xp-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .xp-bar {
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, #FF9500 100%);
+            width: 0%;
+            transition: 1s;
+        }
+
+        .chart-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 80px;
+            padding-top: 20px;
+        }
+
+        .chart-col {
+            width: 10%;
+            background: #333;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .chart-col.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
+        }
+
+        /* =========================================
+           10. ONBOARDING WIZARD
+           ========================================= */
+        #view-onboarding {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            /* Global Scroll */
+        }
+
+        .step-container {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            min-height: min-content;
+            padding-bottom: 80px;
+            /* Space for button */
+        }
+
+        .step-title {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .step-sub {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .sacrafice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding-bottom: 20px;
+            /* Just a grid, no internal scroll */
+        }
+
+        .sacrifice-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .sacrifice-card.selected {
+            border-color: var(--danger);
+            background: rgba(255, 55, 95, 0.15);
+        }
+
+        .sacrifice-icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .ai-orb-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-orb {
+            width: 140px;
+            height: 140px;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: orbPulse 2.5s infinite ease-in-out;
+            margin-bottom: 40px;
+        }
+
+        .goal-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .goal-card:active {
+            transform: scale(0.97);
+        }
+
+        .goal-card.selected {
+            border-color: var(--primary);
+            background: rgba(0, 122, 255, 0.1);
+        }
+
+        .onb-step {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            animation: fadeIn 0.4s;
+        }
+
+        .primary-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, #0056b3 100%);
+            border: none;
+            color: #fff;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .primary-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 4000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .rings-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .modal-card {
+            background: #1c1c1e;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid #333;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideInUp 0.3s;
+            max-height: 85vh;
+            overflow-y: auto;
+            /* Scrollable fixed */
+        }
+
+        .gym-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding-bottom: 120px;
+            /* Fix overlay */
+        }
+
+        .gym-card {
+            position: relative;
+            padding: 24px;
+            border-radius: 20px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            /* Premium Dark Glass */
+            background: rgba(30, 30, 32, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            /* Inner glow from accent color */
+            box-shadow: inset 0 0 60px -20px var(--card-color, #333), 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            min-height: 150px;
+            overflow: hidden;
+        }
+
+        .gym-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--card-color, #fff);
+            box-shadow: 0 0 15px var(--card-color, #fff);
+        }
+
+        .gym-card h3 {
+            font-size: 19px;
+            font-weight: 700;
+            margin: 15px 0 5px 0;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .gym-card:active {
+            transform: scale(0.96);
+        }
+
+        .gym-card p {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .card-icon {
+            font-size: 38px;
+            filter: drop-shadow(0 0 15px var(--card-color, #333));
+            transition: transform 0.3s;
+        }
+
+        .gym-card:hover .card-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        /* Workout Mode Styles */
+        .exercise-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        .exercise-item.completed {
+            background: rgba(46, 204, 113, 0.15);
+            border-color: rgba(46, 204, 113, 0.3);
+        }
+
+        .exercise-item h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .exercise-item span {
+            font-size: 13px;
+            opacity: 0.6;
+        }
+
+        /* DAY CARD */
+        .day-card {
+            background: rgba(40, 40, 45, 0.6);
+            margin-bottom: 12px;
+            padding: 20px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid #fff;
+            /* dynamic override */
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-card:active {
+            transform: scale(0.98);
+            background: rgba(50, 50, 60, 0.8);
+        }
+
+        .day-card h4 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .day-card span {
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        /* EXERCISE ITEM */
+        .exercise-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .exercise-item.completed {
+            opacity: 0.5;
+        }
+
+        .check-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
+        }
+
+        .exercise-item.completed .check-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: #000;
+        }
+
+        /* REST OVERLAY */
+        #rest-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 5000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* WORKOUT UI V2 */
+        .nav-btn-back {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .nav-btn-back:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn-back {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .nav-btn-back:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ACTIVE WORKOUT V3 (STEP MODE) */
+        .workout-step-card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 300px;
+            justify-content: space-between;
+        }
+
+        .set-dots {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+            transform: scale(1.2);
+        }
+
+        .dot.done {
+            background: var(--success);
+        }
+
+        @keyframes pulse-timer {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .timer-pulse {
+            animation: pulse-timer 1.5s infinite ease-in-out;
+        }
+
+        /* Empty State */
+        .gym-empty-state {
+            grid-column: 1/-1;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-action-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .card-action-btn.active {
+            background: var(--success);
+            border-color: var(--success);
+            color: #000;
+        }
+
+        /* PREMIUM WORKOUT UI V4 (Immersive) */
+        .gym-immersive-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            background: radial-gradient(circle at top right, #1a1a1a, #000);
+            overflow-y: auto;
+        }
+
+        /* Circular Timer */
+        .timer-ring-container {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px auto;
+        }
+
+        .timer-ring-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .timer-ring-circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 6;
+        }
+
+        .timer-ring-circle-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 628;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-value-text {
+            position: absolute;
+            text-align: center;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .timer-value-big {
+            font-size: 80px;
+            font-weight: 800;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-label-small {
+            font-size: 16px;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        /* Exercise Card Premium */
+        .ex-card-premium {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            padding: 40px 20px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            margin: 20px 0;
+            min-height: 400px;
+        }
+
+        .big-finish-btn {
+            width: 100%;
+            height: 90px;
+            border-radius: 25px;
+            background: var(--primary);
+            color: #000;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(var(--primary-rgb), 0.3);
+            transition: transform 0.1s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .big-finish-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 5px 15px rgba(var(--primary-rgb), 0.2);
+        }
+
+        .set-pill {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 16px;
+            font-weight: 700;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .set-pill.active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary);
+            transform: scale(1.1);
+        }
+
+        .set-pill.done {
+            background: var(--success);
+            color: #000;
+        }
+
+        .gym-empty-state {
+            grid-column: 1/-1;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-action-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .card-action-btn.active {
+            background: var(--success);
+            border-color: var(--success);
+            color: #000;
+        }
+
+        .gym-add-card {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 140px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .gym-add-card:active {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(0.98);
+        }
+
+        .set-circles-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .set-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .set-circle.done {
+            background: var(--program-color, var(--primary));
+            border-color: var(--program-color, var(--primary));
+            color: #000;
+            box-shadow: 0 0 10px var(--program-color, var(--primary));
+        }
+
+        .ex-timer-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+    <script src="workouts.js?v=2"></script>
+    <script src="gym-v3.js?v=1"></script>
+</head>
+
+<body>
+    <!-- =========================================
+         ONBOARDING WIZARD 2.0
+         ========================================= -->
+    <div id="view-onboarding"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; flex-direction:column;">
+
+        <!-- Step 1: Goal -->
+        <!-- Step 1: Goal -->
+        <div id="step-1" class="step-container animate-fade"
+            style="flex:1; display:flex; flex-direction:column; padding:30px; padding-bottom: 150px;">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-start; padding-top: 20px;">
+                <h2 style="font-size:20px; color:var(--primary); margin-bottom:10px;">Шаг 1 из 4</h2>
+                <h1 class="step-title" style="font-size:32px; font-weight:800; line-height:1.2; margin-bottom:15px;">
+                    Какова твоя Главная Цель?</h1>
+                <p class="step-sub" style="color:#888; margin-bottom:30px;">Опиши результат, который изменит твою жизнь.
+                </p>
+                <textarea id="onb-goal" placeholder="Например: Похудеть на 10кг к лету и чувствовать себя уверенно..."
+                    style="width:100%; background:#1c1c1e; border:1px solid #333; color:#fff; padding:15px; border-radius:15px; font-size:16px; min-height:150px; resize:none; margin-bottom: 20px;"></textarea>
+                <!-- Spacer for mobile keyboard -->
+                <div style="height: 50px;"></div>
+            </div>
+            <button class="primary-btn" onclick="Onboarding.next(2)"
+                style="width:100%; padding:20px; background:var(--primary); border:none; border-radius:20px; color:#fff; font-size:18px; font-weight:700;">
+                Продолжить <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Step 2: Obstacles -->
+        <div id="step-2" class="step-container" style="display:none; flex:1; flex-direction:column; padding:30px;">
+            <div style="flex:1;">
+                <h2 style="font-size:20px; color:#FF375F; margin-bottom:10px;">Враги</h2>
+                <h1 class="step-title" style="font-size:32px; font-weight:800; margin-bottom:30px;">Что мешает тебе?
+                </h1>
+                <div class="selection-grid" id="obstacles-grid"
+                    style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <!-- JS generated -->
+                </div>
+            </div>
+            <button class="primary-btn" onclick="Onboarding.next(3)"
+                style="width:100%; padding:20px; background:var(--primary); border:none; border-radius:20px; color:#fff; font-size:18px; font-weight:700; margin-top:20px;">
+                Далее <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- Step 3: Sacrifice -->
+        <div id="step-3" class="step-container" style="display:none; flex:1; flex-direction:column; padding:30px;">
+            <div style="flex:1;">
+                <h2 style="font-size:20px; color:#FF9F0A; margin-bottom:10px;">Цена Успеха</h2>
+                <h1 class="step-title" style="font-size:32px; font-weight:800; margin-bottom:10px;">Твоя Жертва</h1>
+                <p style="color:#888; margin-bottom:30px;">Что ты готов выбросить из жизни ради цели?</p>
+                <div class="selection-grid" id="sacrifice-grid"
+                    style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <!-- JS generated -->
+                </div>
+            </div>
+            <button class="primary-btn" onclick="Onboarding.analyze()"
+                style="width:100%; padding:20px; background:var(--primary); border:none; border-radius:20px; color:#fff; font-size:18px; font-weight:700; margin-top:20px;">
+                Принять Вызов <i class="fa-solid fa-fire"></i>
+            </button>
+        </div>
+
+        <!-- Step 4: AI Analysis -->
+        <div id="step-4" class="step-container"
+            style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:30px; text-align:center;">
+            <div class="ai-orb"
+                style="width:120px; height:120px; background:radial-gradient(circle, var(--primary) 0%, transparent 70%); border-radius:50%; margin-bottom:30px; animation:pulse 2s infinite;">
+            </div>
+            <h2 style="font-size:24px; font-weight:800; margin-bottom:10px;">Анализ Системы...</h2>
+            <p id="ai-status" style="color:#888; font-size:16px;">Формирую стратегию...</p>
+        </div>
+
+        <!-- Step 5: The Plan -->
+        <div id="step-5" class="step-container" style="display:none; flex:1; flex-direction:column; padding:30px;">
+            <div style="flex:1;">
+                <h1 style="font-size:32px; font-weight:800; margin-bottom:10px;">Твой План</h1>
+                <p style="color:#888; margin-bottom:30px;">Выполни эти действия сегодня ⬇️</p>
+
+                <div id="onb-plan-list" style="display:flex; flex-direction:column; gap:15px;">
+                    <!-- Mission 1: Bio -->
+                    <div
+                        style="background:#1c1c1e; padding:20px; border-radius:20px; display:flex; align-items:center; gap:15px; border-left:4px solid #FF375F;">
+                        <div
+                            style="width:40px; height:40px; background:rgba(255,55,95,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#FF375F;">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;">Биометрия</div>
+                            <div style="font-size:13px; opacity:0.6;">Заполнить параметры тела</div>
+                        </div>
+                    </div>
+
+                    <!-- Mission 2: Generated Goal -->
+                    <div
+                        style="background:#1c1c1e; padding:20px; border-radius:20px; display:flex; align-items:center; gap:15px; border-left:4px solid #007AFF;">
+                        <div
+                            style="width:40px; height:40px; background:rgba(0,122,255,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#007AFF;">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;" id="onb-plan-goal">Цель</div>
+                            <div style="font-size:13px; opacity:0.6;">Установлена</div>
+                        </div>
+                    </div>
+
+                    <!-- Mission 3: Strategy -->
+                    <div
+                        style="background:#1c1c1e; padding:20px; border-radius:20px; display:flex; align-items:center; gap:15px; border-left:4px solid #AF52DE;">
+                        <div
+                            style="width:40px; height:40px; background:rgba(175, 82, 222,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#AF52DE;">
+                            <i class="fa-solid fa-chess-knight"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;">Стратегия</div>
+                            <div style="font-size:13px; opacity:0.6;">Выбрать путь</div>
+                        </div>
+                    </div>
+
+                    <!-- Mission 4: Marathon -->
+                    <div
+                        style="background:#1c1c1e; padding:20px; border-radius:20px; display:flex; align-items:center; gap:15px; border-left:4px solid #FFD60A;">
+                        <div
+                            style="width:40px; height:40px; background:rgba(255, 214, 10,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#FFD60A;">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;">Марафон</div>
+                            <div style="font-size:13px; opacity:0.6;">Начать протокол</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="primary-btn" onclick="Onboarding.finish()"
+                style="width:100%; padding:20px; background:#fff; border:none; border-radius:20px; color:#000; font-size:18px; font-weight:800; margin-top:20px;">
+                НАЧАТЬ <i class="fa-solid fa-play"></i>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- =========================================
+         ONBOARDING WIZARD (First Launch)
+         ========================================= -->
+    <!-- LEGACY ONBOARDING REMOVED -->
+
+    <!-- Header -->
+    <div class="fixed-header">
+        <div class="header-logo"><span>MVP<span style="color:var(--primary)">OS</span></span></div>
+        <button class="burger-btn" onclick="UI.toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="menu-overlay" id="menu-overlay" onclick="UI.toggleMenu()"></div>
+    <div class="side-menu" id="side-menu">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
+            <h2>Меню</h2>
+            <button onclick="UI.toggleMenu()"
+                style="background:none; border:none; color:#fff; font-size:24px;">&times;</button>
+        </div>
+        <div class="menu-item" onclick="UI.switchTab('marathon'); UI.toggleMenu();"><i class="fa-solid fa-trophy"
+                style="color:#FFD60A"></i> Марафон</div>
+        <div class="menu-item" onclick="UI.switchTab('strategy'); UI.toggleMenu();"><i class="fa-solid fa-map"
+                style="color:#AF52DE"></i> Моя Стратегия</div>
+        <div class="menu-item" onclick="UI.navTo('gym')"><i class="fa-solid fa-dumbbell"
+                style="color:var(--primary)"></i> Тренировки</div>
+    </div>
+
+    <!-- TAB 1: DASHBOARD -->
+    <div id="tab-home" class="tab-content active">
+        <!-- Rings -->
+        <h3 class="section-label" style="text-align:center; margin-bottom:20px;">БАЛАНС СИСТЕМЫ</h3>
+        <div class="rings-container" onclick="UI.switchTab('gym')" style="cursor:pointer">
+            <!-- BODY -->
+            <div style="text-align:center;">
+                <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+                    <svg width="80" height="80" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#222" stroke-width="8" />
+                        <circle id="ring-body" cx="50" cy="50" r="42" fill="none" stroke="#00C7FC" stroke-width="8"
+                            stroke-dasharray="264" stroke-dashoffset="264" style="transition:1s" />
+                    </svg>
+                    <i class="fa-solid fa-dumbbell"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 20px;"></i>
+                </div>
+                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;">ТЕЛО</div>
+            </div>
+
+            <!-- MIND -->
+            <div style="text-align:center;">
+                <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+                    <svg width="80" height="80" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#222" stroke-width="8" />
+                        <circle id="ring-mind" cx="50" cy="50" r="42" fill="none" stroke="#AF52DE" stroke-width="8"
+                            stroke-dasharray="264" stroke-dashoffset="264" style="transition:1s" />
+                    </svg>
+                    <i class="fa-solid fa-brain"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 20px;"></i>
+                </div>
+                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;">РАЗУМ</div>
+            </div>
+
+            <!-- FLOW -->
+            <div style="text-align:center;">
+                <div style="position: relative; width: 80px; height: 80px; margin: 0 auto;">
+                    <svg width="80" height="80" viewBox="0 0 100 100" style="transform: rotate(-90deg);">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#222" stroke-width="8" />
+                        <circle id="ring-flow" cx="50" cy="50" r="42" fill="none" stroke="#30D158" stroke-width="8"
+                            stroke-dasharray="264" stroke-dashoffset="264" style="transition:1s" />
+                    </svg>
+                    <i class="fa-solid fa-bolt"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 20px;"></i>
+                </div>
+                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;">ДУХ</div>
+            </div>
+        </div>
+
+        <!-- Rituals -->
+        <div style="padding: 0 12px; margin-top: 30px;">
+            <div class="section-header-row">
+                <span class="section-label">ПРИВЫЧКИ</span>
+                <i class="fa-solid fa-plus" onclick="App.addTask('rituals')"
+                    style="color:var(--primary); cursor:pointer; padding:5px;"></i>
+            </div>
+            <div id="rituals-list" class="task-list"></div>
+        </div>
+
+        <!-- Missions -->
+        <div style="padding: 0 12px; margin-top: 30px;">
+            <div class="section-header-row">
+                <span class="section-label">ЗАДАЧИ СЕГОДНЯ</span>
+                <i class="fa-solid fa-plus" onclick="App.addTask('missions')"
+                    style="color:var(--primary); cursor:pointer; padding:5px;"></i>
+            </div>
+            <div id="missions-list" class="task-list"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: FOOD -->
+    <div id="tab-food" class="tab-content">
+        <h3 class="section-label" style="text-align:center; margin-bottom:20px;">ПИТАНИЕ</h3>
+
+        <div class="calorie-card" onclick="Modals.openCalorieEdit()">
+            <div class="cal-big" id="cal-val">0</div>
+            <div class="cal-sub">ИЗ <span id="cal-target">2500</span> ККАЛ</div>
+            <div style="height:6px; background:#333; border-radius:3px; margin-top:15px; overflow:hidden;">
+                <div id="cal-progress" style="height:100%; width:0%; background:var(--danger); transition:0.5s;"></div>
+            </div>
+        </div>
+
+        <div class="macro-grid">
+            <div class="macro-item">
+                <div style="color:var(--danger); font-weight:800; font-size:18px;">P</div>
+                <div style="font-size:12px; margin-top:4px;">БЕЛКИ</div>
+            </div>
+            <div class="macro-item">
+                <div style="color:var(--accent); font-weight:800; font-size:18px;">F</div>
+                <div style="font-size:12px; margin-top:4px;">ЖИРЫ</div>
+            </div>
+            <div class="macro-item">
+                <div style="color:var(--success); font-weight:800; font-size:18px;">C</div>
+                <div style="font-size:12px; margin-top:4px;">УГЛИ</div>
+            </div>
+        </div>
+
+        <div class="camera-trigger" onclick="Modals.openManualFood()">
+            <i class="fa-solid fa-plus"></i> Добавить еду
+        </div>
+    </div>
+
+    <!-- TAB 3: PROFILE -->
+    <div id="tab-profile" class="tab-content">
+        <div class="profile-header">
+            <div class="avatar-frame">
+                <div class="avatar-img"><i class="fa-solid fa-user"></i></div>
+            </div>
+            <h2 style="font-size:24px; margin-bottom:5px;">User Elite</h2>
+            <div style="color:var(--primary); font-weight:700;">PRO MEMBER</div>
+        </div>
+
+        <div class="stats-block">
+            <div class="xp-row"><span id="lvl-display">LEVEL 1</span><span id="xp-display">0 / 100 XP</span></div>
+            <div class="xp-bar" style="margin-bottom:20px;">
+                <div id="xp-fill" class="xp-fill" style="width:0%"></div>
+            </div>
+
+            <div class="xp-row"><span>WEEKLY MOMENTUM</span></div>
+            <div id="weekly-chart" class="chart-row">
+                <!-- JS populated -->
+            </div>
+            <div id="weekly-labels"
+                style="display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:#555;">
+                <!-- JS populated -->
+            </div>
+        </div>
+
+        <div class="stats-block">
+            <div class="section-header-row">
+                <span class="section-label">БИОМЕТРИЯ</span>
+                <button onclick="Modals.openBioSettings()"
+                    style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700;">ИЗМЕНИТЬ</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #333;">
+                <span>Вес</span><b id="bio-weight">-</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #333;">
+                <span>Рост</span><b id="bio-height">-</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding:12px 0;">
+                <span>Цель TDEE</span><b id="bio-tdee" style="color:var(--primary)">-</b>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- TAB 5: GYM / WORKOUTS -->
+    <div id="tab-gym" class="tab-content">
+        <!-- Header with back button -->
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+            <button class="nav-btn-back" onclick="UI.switchTab('home')"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2 style="margin:0; font-size:22px; font-weight:700;">ТРЕНИРОВКИ</h2>
+        </div>
+
+        <!-- Programs List -->
+        <div id="gym-programs">
+            <!-- Populated by GymV3.renderMyPrograms() -->
+        </div>
+
+        <!-- Days View (hidden by default) -->
+        <div id="gym-days-view" style="display:none;">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <button class="nav-btn-back" onclick="Gym.switchView('gym-programs'); Gym.renderMyPrograms();"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div>
+                    <div style="font-size:11px; opacity:0.5; text-transform:uppercase;">ПРОГРАММА</div>
+                    <h3 id="gym-program-title" style="margin:0; font-size:20px;">Название</h3>
+                </div>
+            </div>
+            <div id="gym-days-list">
+                <!-- Populated by GymV3.openProgram() -->
+            </div>
+        </div>
+
+        <!-- Active Workout View (hidden by default) -->
+        <div id="gym-active-view" style="display:none;">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <button class="nav-btn-back" onclick="if(confirm('Завершить тренировку?')) { Gym.finishWorkout(); }"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div id="gym-day-title" style="flex:1;">
+                    <!-- Populated by GymV3.renderActiveWorkout() -->
+                </div>
+            </div>
+            <div id="gym-exercises-list">
+                <!-- Populated by GymV3.renderActiveWorkout() -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" class="tab-content">
+        <h2 style="padding:20px;">Настройки</h2>
+        <div class="stats-block">
+            <div style="padding:15px 0; border-bottom:1px solid #333;">Уведомления</div>
+            <div style="padding:15px 0; border-bottom:1px solid #333;">Приватность</div>
+
+            <div style="padding:15px 0; color:var(--primary); font-weight:700; cursor:pointer;"
+                onclick="window.Gym.startDemoMode()">
+                <i class="fa-solid fa-play"></i> Start Demo (35s)
+            </div>
+
+            <div style="padding:15px 0; color:#FF9F0A; font-weight:700; cursor:pointer;"
+                onclick="App.restartOnboarding()">
+                <i class="fa-solid fa-rotate"></i> Пройти Онбординг заново
+            </div>
+        </div>
+
+        <div style="padding:15px 0; color:var(--danger); cursor:pointer;" onclick="App.resetDemo()">
+            <i class="fa-solid fa-trash"></i> Удалить все данные (Reset)
+        </div>
+    </div>
+    </div>
+
+    <!-- TAB: STRATEGY (AI COACH) -->
+    <div id="tab-strategy" class="tab-content">
+        <!-- Header -->
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+            <button class="nav-btn-back" onclick="UI.switchTab('home')"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2 style="margin:0; font-size:22px; font-weight:700;">СТРАТЕГИЯ</h2>
+            <div
+                style="margin-left:auto; background:rgba(175, 82, 222, 0.2); color:#AF52DE; padding:4px 8px; border-radius:6px; font-size:10px; font-weight:800;">
+                AI PRO</div>
+        </div>
+
+        <!-- STEP 0: INTRO -->
+        <div id="strat-step-zero" style="display:none;" class="animate-fade">
+            <div style="text-align:center; padding:40px 20px;">
+                <div
+                    style="width:100px; height:100px; background:rgba(175, 82, 222, 0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 30px; border:1px solid #AF52DE;">
+                    <i class="fa-solid fa-chess-knight" style="font-size:40px; color:#AF52DE;"></i>
+                </div>
+                <h1 style="font-size:32px; font-weight:800; margin-bottom:15px;">AI STRATEGY</h1>
+                <p style="color:#888; margin-bottom:40px; line-height:1.5;">
+                    Искусственный интеллект создаст персональный план победы над любой целью.
+                </p>
+                <div
+                    style="text-align:left; background:rgba(255,255,255,0.05); padding:20px; border-radius:16px; margin-bottom:30px;">
+                    <p style="margin-bottom:10px;">⚡ <strong>Анализ:</strong> 4 фактора успеха.</p>
+                    <p style="margin-bottom:10px;">📅 <strong>План:</strong> Пошаговая карта на 7 дней.</p>
+                    <p style="margin-bottom:0;">🧠 <strong>Интеллект:</strong> Адаптация под твой темп.</p>
+                </div>
+                <button class="primary-btn" onclick="Strategy.startZero()" style="
+                    background: linear-gradient(135deg, #AF52DE 0%, #5856D6 100%);
+                    color:#fff; font-weight:800; box-shadow:0 10px 40px rgba(88, 86, 214, 0.4);
+                    display:block; margin:0 auto;">
+                    СОЗДАТЬ СТРАТЕГИЮ
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 1: FOCUS -->
+        <div id="strat-step-focus" class="animate-fade">
+            <div style="text-align:center; padding:40px 20px;">
+                <div class="ai-orb"
+                    style="width:100px; height:100px; margin:0 auto 30px; animation: orbPulse 3s infinite;"></div>
+                <h1 style="font-size:32px; font-weight:800; line-height:1.2; margin-bottom:15px;">На чем фокус этой
+                    недели?</h1>
+                <p style="color:#888; margin-bottom:30px;">Напиши одну главную сферу или проблему.</p>
+
+                <input type="text" id="strat-input-focus" placeholder="Например: Учеба, Бизнес, Отношения..."
+                    style="width:100%; background:#1c1c1e; border:2px solid #333; padding:20px; border-radius:20px; color:#fff; font-size:18px; text-align:center; margin-bottom:20px;"
+                    onkeyup="if(event.key==='Enter') Strategy.submitFocus()">
+
+                <button class="primary-btn" onclick="Strategy.submitFocus()">
+                    АНАЛИЗИРОВАТЬ <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2: AI QUESTIONS -->
+        <div id="strat-step-questions" style="display:none;" class="animate-fade">
+            <h2 style="margin-bottom:10px; color:#AF52DE;">Уточнение данных</h2>
+            <p style="color:#888; margin-bottom:20px;">ИИ хочет узнать детали для точного плана.</p>
+
+            <div id="strat-questions-list" style="display:flex; flex-direction:column; gap:20px;">
+                <!-- Populated by JS -->
+            </div>
+
+            <button class="primary-btn" onclick="Strategy.submitAnswers()" style="margin-top:30px;">
+                СОЗДАТЬ ПЛАН <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </button>
+        </div>
+
+        <!-- STEP 3: RESULT DASHBOARD -->
+        <div id="strat-step-result" style="display:none;" class="animate-fade">
+
+            <!-- Hero Goal -->
+            <div
+                style="background:linear-gradient(135deg, #AF52DE 0%, #5856D6 100%); padding:25px; border-radius:24px; text-align:center; margin-bottom:20px; box-shadow:0 10px 40px rgba(88, 86, 214, 0.4);">
+                <div style="font-size:12px; font-weight:800; opacity:0.8; letter-spacing:1px; margin-bottom:5px;">
+                    ГЛАВНАЯ ЦЕЛЬ</div>
+                <h1 id="strat-final-goal" style="font-size:24px; font-weight:800; margin:0;">-</h1>
+            </div>
+
+            <!-- Charts Row -->
+            <div style="display:flex; gap:15px; margin-bottom:20px;">
+                <!-- Success Chance -->
+                <div
+                    style="flex:1; background:var(--bg-card); padding:15px; border-radius:20px; text-align:center; border:1px solid var(--border-color);">
+                    <div style="position:relative; width:80px; height:80px; margin:0 auto 10px;">
+                        <svg viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none" stroke="#333" stroke-width="3" />
+                            <path id="strat-chart-ring" stroke-dasharray="0, 100"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none" stroke="#30D158" stroke-width="3" />
+                        </svg>
+                        <div id="strat-prob-val"
+                            style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;">
+                            0%</div>
+                    </div>
+                    <div style="font-size:10px; opacity:0.6;">ВЕРОЯТНОСТЬ<br>УСПЕХА</div>
+                </div>
+
+                <!-- Load Chart -->
+                <div
+                    style="flex:1; background:var(--bg-card); padding:15px; border-radius:20px; border:1px solid var(--border-color); display:flex; flex-direction:column;">
+                    <div style="font-size:10px; opacity:0.6; text-align:center; margin-bottom:10px;">НАГРУЗКА</div>
+                    <div id="strat-chart-bars"
+                        style="flex:1; display:flex; align-items:flex-end; justify-content:space-between; gap:2px;">
+                        <!-- JS Bars -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Days Plan -->
+            <h3 style="margin-bottom:15px;">Карта Действий</h3>
+            <div id="strategy-days" style="display:flex; flex-direction:column; gap:15px;">
+                <!-- JS Populated -->
+            </div>
+
+            <button class="btn-secondary" onclick="Strategy.reset()"
+                style="margin-top:40px; width:100%; padding:15px; border-radius:12px;">
+                <i class="fa-solid fa-plus"></i> Новая Цель
+            </button>
+        </div>
+    </div>
+
+    <!-- TAB: MARATHON (TITAN PROTOCOL) -->
+    <div id="tab-marathon" class="tab-content" style="padding-bottom:100px;">
+        <!-- Header -->
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+            <button class="nav-btn-back" onclick="UI.switchTab('home')"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2
+                style="margin:0; font-size:24px; font-weight:800; background:linear-gradient(90deg, #FF3B30, #FF2D55); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">
+                MVP PROTOCOL</h2>
+        </div>
+
+        <!-- Dynamic Content -->
+        <div id="marathon-dynamic-container" style="min-height:400px; display:flex; flex-direction:column;">
+            <!-- RENDERED BY JS -->
+            <div style="text-align:center; padding-top:50px; color:#666;">Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="UI.switchTab('home')"><i class="fa-solid fa-house"></i></div>
+        <div class="nav-item" onclick="UI.switchTab('profile')"><i class="fa-solid fa-user"></i></div>
+        <div class="nav-item" onclick="UI.switchTab('food')"><i class="fa-solid fa-apple-whole"></i></div>
+        <div class="nav-item" onclick="UI.switchTab('settings')"><i class="fa-solid fa-gear"></i></div>
+    </div>
+
+    <!-- =========================================
+         MODALS
+         ========================================= -->
+
+    <!-- Manual Food Input -->
+    <div id="modal-food" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Добавить еду</h3>
+
+            <!-- AI Section (GPT-4o Mini) -->
+            <div style="background:rgba(0,122,255,0.1); padding:15px; border-radius:12px; margin-bottom:20px;">
+                <label class="input-label" style="color:var(--primary); display:flex; gap:8px; align-items:center;">
+                    <i class="fa-solid fa-robot"></i> AI Ассистент
+                </label>
+                <textarea id="ai-food-input" placeholder="Например: Овсянка с медом и латте"
+                    style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:12px; border-radius:10px; resize:none; margin:10px 0; font-family:inherit; min-height:60px;"></textarea>
+                <button class="btn-primary" onclick="App.analyzeFoodAI()" style="width:100%; font-size:14px;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Рассчитать
+                </button>
+            </div>
+
+            <div
+                style="text-align:center; margin-bottom:15px; opacity:0.4; font-size:11px; letter-spacing:1px; text-transform:uppercase;">
+                — или вручную —</div>
+
+            <div class="input-group">
+                <label class="input-label">Название</label>
+                <input type="text" id="inp-food-name" placeholder="Название блюда">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Калории (ккал)</label>
+                <input type="number" id="inp-cal" placeholder="0">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="primary-btn" onclick="App.addFoodManual()"
+                    style="flex:1; padding:15px; border-radius:12px;">Сохранить</button>
+                <button class="btn-secondary" onclick="Modals.closeAll()"
+                    style="flex:1; background:#333; color:#fff; border:none; padding:15px; border-radius:12px;">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB GYM -->
+    <div id="tab-gym" class="tab-content" style="padding-bottom:80px;">
+        <div style="display:flex; align-items:center; margin-bottom:20px;">
+            <button onclick="UI.switchTab('home')"
+                style="background:none; border:none; color:#fff; font-size:20px; margin-right:15px;"><i
+                    class="fa-solid fa-arrow-left"></i></button>
+            <h2 style="margin:0;">ТРЕНИРОВКИ</h2>
+        </div>
+
+        <!-- 1. Programs List -->
+        <div id="gym-programs" class="gym-grid">
+            <!-- JS Populated from workouts.js -->
+        </div>
+
+        <!-- 2. Days List (Hidden) -->
+        <!-- 2. Days List (Hidden) -->
+        <!-- 2. Days List (GymV2) -->
+        <div id="gym-days-view" style="display:none; padding-bottom:100px;">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+                <button onclick="GymV2.backToRoot()" class="nav-btn-back">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div style="flex:1;">
+                    <div id="gym-program-subtitle"
+                        style="font-size:11px; opacity:0.5; text-transform:uppercase; letter-spacing:1px;">Программа
+                    </div>
+                    <div id="gym-program-title" style="margin:0; font-size:16px; font-weight:700; line-height:1.2;">
+                    </div>
+                </div>
+            </div>
+            <div id="gym-days-list" class="task-list"></div>
+        </div>
+
+        <!-- 2.5 Pre-Start View (GymV2) -->
+        <div id="gym-pre-start-view" style="display:none; padding-bottom:100px;">
+            <div style="display:flex; align-items:center; gap:15px; margin-bottom:30px;">
+                <button onclick="GymV2.backToDays()" class="nav-btn-back"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <div style="font-size:14px; opacity:0.6;">Обзор тренировки</div>
+            </div>
+
+            <h1 id="pre-start-title" style="font-size:28px; font-weight:800; margin-bottom:10px; line-height:1.1;"></h1>
+            <div id="pre-start-meta" style="font-size:14px; opacity:0.6; margin-bottom:30px;"></div>
+
+            <div id="pre-start-exercises" style="margin-bottom:40px; opacity:0.8;"></div>
+
+            <button id="btn-start-workout" class="btn-primary" onclick="GymV2.startWorkout()"
+                style="position:fixed; bottom:30px; left:5%; width:90%; box-shadow:0 10px 40px rgba(0,0,0,0.5); z-index:100; height:60px; font-size:16px; font-weight:700; letter-spacing:1px; background:var(--primary); color:#000;">
+                НАЧАТЬ ТРЕНИРОВКУ 🚀
+            </button>
+        </div>
+
+
+
+        <!-- 3. Active Workout (Hidden) -->
+        <div id="gym-active-view" style="display:none; padding-bottom:100px;">
+            <div style="margin-bottom:20px;">
+                <button onclick="GymV2.backToDays()" class="nav-btn-back"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+            </div>
+            <h2 id="gym-day-title" style="margin-bottom:15px; font-size:18px;"></h2>
+            <div id="gym-exercises-list" class="task-list"></div>
+            <button class="btn-primary" onclick="GymV2.finish()"
+                style="margin-top:20px; background:var(--success);">ЗАВЕРШИТЬ (+300 XP) 🚀</button>
+        </div>
+    </div>
+
+    <!-- Bio Settings -->
+    <div id="modal-bio" class="modal-overlay">
+        <div class="modal-card">
+            <h3>Параметры тела</h3>
+            <div id="bio-form" style="margin-top:20px;">
+                <!-- Compact Row 1 -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="input-group"><label class="input-label">Вес (кг)</label><input type="number"
+                            id="bio-inp-weight"></div>
+                    <div class="input-group"><label class="input-label">Рост (см)</label><input type="number"
+                            id="bio-inp-height"></div>
+                </div>
+                <!-- Compact Row 2 -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                    <div class="input-group"><label class="input-label">Возраст</label><input type="number"
+                            id="bio-inp-age"></div>
+                    <div class="input-group">
+                        <label class="input-label">Пол</label>
+                        <select id="bio-inp-gender">
+                            <option value="male">Мужской</option>
+                            <option value="female">Женский</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Спорт (Профиль)</label>
+                    <select id="bio-inp-sport">
+                        <option value="basketball" selected>Баскетбол</option>
+                        <option value="gym">Тренажерный зал</option>
+                        <option value="football">Футбол</option>
+                        <option value="running">Бег / Кардио</option>
+                        <option value="combat">Единоборства</option>
+                        <option value="swim">Плавание</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Интенсивность</label>
+                    <select id="bio-inp-activity">
+                        <option value="1.2">Сидячий (Офис)</option>
+                        <option value="1.375">Малая (1-3 тр/нед)</option>
+                        <option value="1.55">Средняя (3-5 тр/нед)</option>
+                        <option value="1.725" selected>Высокая (6-7 тр/нед)</option>
+                        <option value="1.9">Атлет (2р/день)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Цель</label>
+                    <select id="bio-inp-goal">
+                        <option value="lose">Похудение (-15%)</option>
+                        <option value="maintain">Поддержание</option>
+                        <option value="gain" selected>Набор массы (+15%)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="App.saveBio()">Рассчитать и Сохранить</button>
+            </div>
+            <button onclick="Modals.closeAll()"
+                style="width:100%; padding:15px; margin-top:10px; background:none; border:none; color:#888;">Закрыть</button>
+        </div>
+    </div>
+
+
+    <!-- =========================================
+         JAVASCRIPT LOGIC
+         ========================================= -->
+    <script>
+        // --- 1. STATE MANAGEMENT ---
+        // SERVER CONFIGURATION - Change this to your AMVERA URL later (e.g. "https://my-project.amvera.io")
+        const SERVER_URL = "http://localhost:8000";
+
+        const DB = {
+            data: {
+                goal: "",
+                rituals: [],
+                missions: [],
+                calories: { current: 0, target: 2500 },
+                bio: { weight: 0, height: 0, age: 25, gender: 'male', goal: 'maintain' },
+                xp: 0,
+                level: 1,
+                history: {}, // { '2023-10-27': 5 }
+                onboardingComplete: false
+            },
+            init() {
+                const s = localStorage.getItem('mvp_state_v1');
+                if (s) {
+                    this.data = JSON.parse(s);
+                    // Migration for new fields
+                    if (this.data.xp === undefined) this.data.xp = 0;
+                    if (this.data.level === undefined) this.data.level = 1;
+                    if (!this.data.history) this.data.history = {};
+                    if (this.data.onboardingComplete === undefined) this.data.onboardingComplete = false;
+
+                    // Critical: Ensure Marathon Data Exists
+                    if (!this.data.marathon) {
+                        this.data.marathon = {
+                            day: 1,
+                            unlocked: false,
+                            questsCompleted: [],
+                            baseCompleted: []
+                        };
+                    }
+                    if (!this.data.missions) this.data.missions = [];
+                    if (!this.data.habits) this.data.habits = [];
+                }
+                console.log('🗄️ DB initialized, onboardingComplete =', this.data.onboardingComplete);
+                return this.data;
+            },
+            save() {
+                console.log('💾 Saving to localStorage, onboardingComplete =', this.data.onboardingComplete);
+                localStorage.setItem('mvp_state_v1', JSON.stringify(this.data));
+                App.render();
+            }
+        };
+
+        // --- 1.5 ONBOARDING SYSTEM ---
+        window.Onboarding = {
+            currentStep: 1,
+            data: {
+                goal: "",
+                obstacles: [],
+                sacrifices: []
+            },
+            obstaclesList: [
+                { id: 'time', icon: 'clock', text: 'Нет времени' },
+                { id: 'energy', icon: 'battery-empty', text: 'Нет сил' },
+                { id: 'knowledge', icon: 'brain', text: 'Не знаю как' },
+                { id: 'motivation', icon: 'fire-extinguisher', text: 'Нет мотивации' },
+                { id: 'stress', icon: 'bolt', text: 'Стресс' },
+                { id: 'env', icon: 'users', text: 'Окружение' },
+                { id: 'chaos', icon: 'tornado', text: 'Хаос в жизни' },
+                { id: 'money', icon: 'sack-dollar', text: 'Финансы' }
+            ],
+            sacrificesList: [
+                { id: 'toxic', text: 'Токсичные люди ☢️' },
+                { id: 'sugar', text: 'Сладкое 🍬' },
+                { id: 'smoking', text: 'Курение 🚬' },
+                { id: 'porn', text: 'Порно / Эротика 🔞' },
+                { id: 'fastfood', text: 'Фастфуд 🍔' },
+                { id: 'alcohol', text: 'Алкоголь 🍺' },
+                { id: 'social', text: 'Соцсети 📱' },
+                { id: 'games', text: 'Игры 🎮' },
+                { id: 'tv', text: 'Сериалы 📺' },
+                { id: 'sleep', text: 'Лишний сон 🛌' },
+                { id: 'lazy', text: 'Лень 🦥' },
+                { id: 'excuses', text: 'Оправдания 🗣️' },
+                { id: 'comfort', text: 'Комфорт 🛋️' },
+                { id: 'shopping', text: 'Шопоголизм 🛍️' }
+            ],
+
+            init() {
+                // Generate grids
+                this.renderGrid('obstacles-grid', this.obstaclesList, 'obstacles');
+                this.renderGrid('sacrifice-grid', this.sacrificesList, 'sacrifices');
+            },
+
+            renderGrid(elementId, items, dataKey) {
+                const container = document.getElementById(elementId);
+                if (!container) return;
+
+                container.innerHTML = items.map(item => `
+                    <div class="selection-card" onclick="Onboarding.toggleSelection(this, '${dataKey}', '${item.id}')"
+                        style="background:#1c1c1e; padding:15px; border-radius:15px; border:1px solid #333; cursor:pointer; text-align:center; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100px;">
+                        ${item.icon ? `<i class="fa-solid fa-${item.icon}" style="font-size:24px; margin-bottom:10px; color:#666;"></i>` : ''}
+                        <span style="font-weight:600; line-height:1.2;">${item.text}</span>
+                    </div>
+                `).join('');
+            },
+
+            toggleSelection(el, category, id) {
+                // Toggle UI
+                const isSelected = el.style.borderColor === 'rgb(0, 122, 255)'; // var(--primary)
+
+                if (isSelected) {
+                    el.style.borderColor = '#333';
+                    el.style.background = '#1c1c1e';
+                    if (el.querySelector('i')) el.querySelector('i').style.color = '#666';
+
+                    // Remove from data
+                    this.data[category] = this.data[category].filter(i => i !== id);
+                } else {
+                    el.style.borderColor = 'var(--primary)';
+                    el.style.background = 'rgba(0,122,255,0.1)';
+                    if (el.querySelector('i')) el.querySelector('i').style.color = 'var(--primary)';
+
+                    // Add to data
+                    this.data[category].push(id);
+                }
+            },
+
+            next(step) {
+                // Validation
+                if (step === 2) {
+                    const goal = document.getElementById('onb-goal').value;
+                    if (goal.length < 3) { alert('Пожалуйста, опиши цель подробнее'); return; }
+                    this.data.goal = goal;
+                    // Init next step UI
+                    this.init();
+                }
+
+                // Hide current
+                document.getElementById(`step-${this.currentStep}`).style.display = 'none';
+
+                // Show next
+                this.currentStep = step;
+                document.getElementById(`step-${step}`).style.display = 'flex';
+            },
+
+            analyze() {
+                this.next(4);
+
+                const status = document.getElementById('ai-status');
+                const messages = [
+                    "Анализирую цель...",
+                    "Изучаю твоих врагов...",
+                    "Принимаю твою жертву...",
+                    "Формирую стратегию..."
+                ];
+
+                let i = 0;
+                const interval = setInterval(() => {
+                    status.innerText = messages[i];
+                    i++;
+                    if (i >= messages.length) {
+                        clearInterval(interval);
+                        this.showPlan();
+                    }
+                }, 800);
+            },
+
+            showPlan() {
+                // Populate Plan
+                document.getElementById('onb-plan-goal').innerText = this.data.goal.substring(0, 20) + '...';
+
+                this.next(5);
+            },
+
+            finish() {
+                // Save data
+                DB.data.goal = this.data.goal;
+
+                // Add Starter Missions
+                const starters = [
+                    { id: 'mission_bio', text: '🧬 1. Заполнить Биометрию', xp: 50 },
+                    { id: 'mission_strategy', text: '♟️ 2. Выбрать Стратегию', xp: 100 },
+                    { id: 'mission_marathon', text: '🔥 3. Начать Марафон', xp: 150 }
+                ];
+
+                starters.forEach(m => {
+                    if (!DB.data.missions) DB.data.missions = [];
+                    if (!DB.data.missions.find(ex => ex.id === m.id)) {
+                        DB.data.missions.push({
+                            id: m.id,
+                            text: m.text,
+                            xp: m.xp,
+                            completed: false,
+                            type: 'one-time',
+                            isStarter: true
+                        });
+                    }
+                });
+
+                DB.data.onboardingComplete = true;
+                DB.save();
+
+                // Hide onboarding
+                document.getElementById('view-onboarding').style.display = 'none';
+                window.location.reload();
+            }
+        };
+
+        // --- 2. UI UTILS ---
+        const UI = {
+            switchTab(id) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.getElementById('tab-' + id).classList.add('active');
+
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                // Updated order: Home, Profile, Food, Settings
+                const tabs = ['home', 'profile', 'food', 'settings'];
+                const idx = tabs.indexOf(id);
+                if (idx > -1) document.querySelectorAll('.nav-item')[idx].classList.add('active');
+
+                // Save state
+                localStorage.setItem('mvp_last_tab', id);
+            },
+            toggleMenu() {
+                document.getElementById('side-menu').classList.toggle('active');
+                document.getElementById('menu-overlay').classList.toggle('active');
+            },
+            navTo(tab) {
+                this.toggleMenu();
+                this.switchTab(tab);
+                // Initialize Gym when navigating to it
+                if (tab === 'gym' && typeof Gym !== 'undefined') {
+                    Gym.switchView('gym-programs');
+                    Gym.renderMyPrograms();
+                }
+            }
+        };
+
+
+
+        // --- 3. MODALS ---
+        const Modals = {
+            open(id) { document.getElementById(id).style.display = 'flex'; },
+            closeAll() { document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none'); },
+            openManualFood() { this.open('modal-food'); },
+            openBioSettings() {
+                const b = DB.data.bio;
+                document.getElementById('bio-inp-weight').value = b.weight || '';
+                document.getElementById('bio-inp-height').value = b.height || '';
+                document.getElementById('bio-inp-age').value = b.age || '';
+                document.getElementById('bio-inp-gender').value = b.gender || 'male';
+                document.getElementById('bio-inp-activity').value = b.activity || '1.725';
+                document.getElementById('bio-inp-goal').value = b.goal || 'gain';
+                document.getElementById('bio-inp-sport').value = b.sport || 'basketball';
+                this.open('modal-bio');
+            },
+            openCalorieEdit() {
+                const n = prompt("Новая цель (ккал):", DB.data.calories.target);
+                if (n) { DB.data.calories.target = parseInt(n); DB.save(); }
+            }
+        };
+
+        // --- 4. APP LOGIC ---
+        const App = {
+            init() {
+                DB.init();
+
+                // Check onboarding
+                const onbView = document.getElementById('view-onboarding');
+
+                // MIGRATION & SAFETY: Always ensure Starter Missions exist if onboarding is done
+                if (DB.data.onboardingComplete) {
+                    // Ensure missions array exists
+                    if (!DB.data.missions) DB.data.missions = [];
+
+                    // Filter out any nulls/corrupt data first
+                    DB.data.missions = DB.data.missions.filter(x => x);
+
+                    const starters = [
+                        { id: 'mission_bio', text: '🧬 1. Заполнить Биометрию', xp: 50 },
+                        { id: 'mission_strategy', text: '♟️ 2. Выбрать Стратегию', xp: 100 },
+                        { id: 'mission_marathon', text: '🔥 3. Начать Марафон', xp: 150 }
+                    ];
+
+                    starters.forEach(m => {
+                        if (!DB.data.missions.find(ex => ex.id === m.id)) {
+                            DB.data.missions.push({
+                                id: m.id, text: m.text, xp: m.xp,
+                                completed: false, type: 'one-time', isStarter: true
+                            });
+                        }
+                    });
+                    // Force save to persist the fix
+                    DB.save();
+                }
+
+                if (onbView && !DB.data.onboardingComplete) {
+                    onbView.style.setProperty('display', 'flex', 'important');
+                    onbView.style.zIndex = '99999';
+                    if (window.Onboarding) window.Onboarding.init();
+                } else {
+                    if (onbView) onbView.style.display = 'none';
+                    this.render();
+                    // Initialize Gym only if app is active
+                    if (window.GymV3) window.GymV3.init();
+                }
+            },
+
+            currentOnboardingStep: 1,
+            selectedGoal: null,
+
+            nextOnboardingStep() {
+                // Hide current step
+                document.getElementById(`onb-step-${this.currentOnboardingStep}`).style.display = 'none';
+
+                // Validate and save data
+                if (this.currentOnboardingStep === 2) {
+                    const age = parseInt(document.getElementById('onb-age').value);
+                    if (!age || age < 10 || age > 100) {
+                        alert('Пожалуйста, введите корректный возраст');
+                        document.getElementById(`onb-step-${this.currentOnboardingStep}`).style.display = 'flex';
+                        return;
+                    }
+                    DB.data.bio.age = age;
+                } else if (this.currentOnboardingStep === 3) {
+                    const weight = parseInt(document.getElementById('onb-weight').value);
+                    if (!weight || weight < 30 || weight > 300) {
+                        alert('Пожалуйста, введите корректный вес');
+                        document.getElementById(`onb-step-${this.currentOnboardingStep}`).style.display = 'flex';
+                        return;
+                    }
+                    DB.data.bio.weight = weight;
+                } else if (this.currentOnboardingStep === 4) {
+                    const height = parseInt(document.getElementById('onb-height').value);
+                    if (!height || height < 100 || height > 250) {
+                        alert('Пожалуйста, введите корректный рост');
+                        document.getElementById(`onb-step-${this.currentOnboardingStep}`).style.display = 'flex';
+                        return;
+                    }
+                    DB.data.bio.height = height;
+                } else if (this.currentOnboardingStep === 5) {
+                    if (!this.selectedGoal) {
+                        alert('Пожалуйста, выберите цель');
+                        document.getElementById(`onb-step-${this.currentOnboardingStep}`).style.display = 'flex';
+                        return;
+                    }
+                    DB.data.bio.goal = this.selectedGoal;
+
+                    // Calculate TDEE
+                    const { age, weight, height } = DB.data.bio;
+                    const bmr = 10 * weight + 6.25 * height - 5 * age + 5; // Mifflin-St Jeor for males
+                    let tdee = Math.round(bmr * 1.55); // Moderate activity
+
+                    if (this.selectedGoal === 'lose') tdee -= 500;
+                    else if (this.selectedGoal === 'gain') tdee += 500;
+
+                    DB.data.calories.target = tdee;
+
+                    // Show summary
+                    const goalText = this.selectedGoal === 'lose' ? 'Похудение' :
+                        this.selectedGoal === 'gain' ? 'Набор массы' : 'Поддержание формы';
+                    document.getElementById('onb-summary').innerHTML = `
+                        <div><strong>Возраст:</strong> ${age} лет</div>
+                        <div><strong>Вес:</strong> ${weight} кг</div>
+                        <div><strong>Рост:</strong> ${height} см</div>
+                        <div><strong>Цель:</strong> ${goalText}</div>
+                        <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
+                            <strong>Целевая калорийность:</strong> ${tdee} kcal/день
+                        </div>
+                    `;
+                }
+
+                DB.save();
+
+                // Show next step
+                this.currentOnboardingStep++;
+                document.getElementById(`onb-step-${this.currentOnboardingStep}`).style.display = 'flex';
+            },
+
+            selectGoal(goal) {
+                this.selectedGoal = goal;
+
+                // Update UI
+                document.querySelectorAll('.goal-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                document.querySelector(`[data-goal="${goal}"]`).classList.add('selected');
+
+                // Enable next button
+                const btn = document.getElementById('goal-next-btn');
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'all';
+            },
+
+            completeOnboarding() {
+                DB.data.onboardingComplete = true;
+                DB.save();
+
+                document.getElementById('view-onboarding').style.display = 'none';
+                this.render();
+
+                // Welcome message
+                setTimeout(() => {
+                    alert('🎉 Добро пожаловать в MVP Life OS!\n\nВаш профиль настроен и готов к использованию.');
+                }, 300);
+            },
+
+            resetDemo() {
+                if (confirm('Сбросить все данные?')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            },
+
+            restartOnboarding() {
+                if (confirm('Пройти онбординг заново?')) {
+                    DB.data.onboardingComplete = false;
+                    DB.save();
+                    window.location.reload();
+                }
+            },
+
+            render() {
+                // Render Tasks
+                const rList = document.getElementById('rituals-list');
+                // Unify: Use DB.data.habits as source of truth for Rituals
+                const activeHabits = DB.data.habits || DB.data.rituals || [];
+                rList.innerHTML = activeHabits.map((t, i) => {
+                    // Ensure ID exists for toggle
+                    if (!t.id) t.id = 'habit_' + i;
+                    return this.createTaskHtml(t, 'habits');
+                }).join('');
+
+                // Render Missions
+                const mList = document.getElementById('missions-list');
+                // Filter out completed missions
+                const activeMissions = DB.data.missions.filter(m => !m.completed);
+                mList.innerHTML = activeMissions.length ? activeMissions.map(t => this.createTaskHtml(t, 'missions')).join('') : '<div style="text-align:center; color:#555; padding:20px;">Нет активных квестов</div>';
+
+                // Render Rings
+                this.updateRings();
+
+                // Render Food
+                document.getElementById('cal-val').innerText = DB.data.calories.current;
+                document.getElementById('cal-target').innerText = DB.data.calories.target;
+                const pct = Math.min(100, (DB.data.calories.current / DB.data.calories.target) * 100);
+                document.getElementById('cal-progress').style.width = pct + '%';
+
+                // Render Bio
+                document.getElementById('bio-weight').innerText = DB.data.bio.weight + ' kg';
+                document.getElementById('bio-height').innerText = DB.data.bio.height + ' cm';
+                document.getElementById('bio-tdee').innerText = DB.data.calories.target + ' kcal';
+
+                this.renderProfile();
+            },
+            renderProfile() {
+                // XP
+                const xp = DB.data.xp || 0;
+                const lvl = DB.data.level || 1;
+                const target = lvl * 1000;
+                const pct = Math.min(100, (xp / target) * 100);
+
+                document.getElementById('lvl-display').innerText = `LEVEL ${lvl}`;
+                document.getElementById('xp-display').innerText = `${xp} / ${target} XP`;
+                document.getElementById('xp-fill').style.width = pct + '%';
+
+                // Chart
+                const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+                const chartEl = document.getElementById('weekly-chart');
+                const labelsEl = document.getElementById('weekly-labels');
+
+                let htmlBars = '';
+                let htmlLabs = '';
+
+                const today = new Date();
+
+                // Get max for scaling (or default 5)
+                const hist = DB.data.history || {};
+                let maxVal = 5;
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() - (6 - i));
+                    const k = d.toISOString().split('T')[0];
+                    if (hist[k] > maxVal) maxVal = hist[k];
+                }
+
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(today);
+                    d.setDate(today.getDate() - (6 - i)); // Past 7 days
+                    const key = d.toISOString().split('T')[0];
+                    const val = hist[key] || 0;
+                    const h = (val / maxVal) * 100;
+                    const isToday = i === 6;
+
+                    htmlBars += `<div class="chart-col ${isToday ? 'active' : ''}" style="height:${h}%"></div>`;
+                    htmlLabs += `<span>${days[d.getDay()]}</span>`;
+                }
+
+                chartEl.innerHTML = htmlBars;
+                labelsEl.innerHTML = htmlLabs;
+            },
+            createTaskHtml(t, listType) {
+                const isAi = t.isAi;
+                return `
+                <div class="task-item ${t.completed ? 'completed' : ''} ${isAi ? 'ai-task' : ''}" onclick="App.toggleTask('${t.id}', '${listType}')" oncontextmenu="App.deleteTask('${t.id}', '${listType}'); return false;">
+                    <div class="checkbox">${t.completed ? '✓' : ''}</div>
+                    <div class="task-content">
+                        <div style="font-weight:600; font-size:15px;">${t.text || t.title || 'Mission'}</div>
+                    </div>
+                </div>`;
+            },
+            addTask(listType) {
+                let txt = prompt("Новая задача:", "");
+                if (txt && txt.trim().length > 0) {
+                    txt = txt.trim();
+                    // Capitalize first letter
+                    txt = txt.charAt(0).toUpperCase() + txt.slice(1);
+
+                    const newItem = { id: Date.now(), text: txt, completed: false, isAi: false };
+                    if (!DB.data[listType]) DB.data[listType] = [];
+                    DB.data[listType].push(newItem);
+                    DB.save();
+                }
+            },
+            deleteTask(id, listType) {
+                if (confirm("Удалить задачу?")) {
+                    DB.data[listType] = DB.data[listType].filter(x => x.id !== id);
+                    DB.save();
+                }
+            },
+            toggleTask(id, list) {
+                // Handle String IDs (convert numeric strings back to numbers if needed, but setup_profile is string)
+                // Actually, logic is fine with string vs string comparison.
+
+                const item = DB.data[list].find(x => x.id == id); // Loose equality for number/string mix
+                if (item) {
+                    // Smart Redirects (Starter Missions) - Mark complete & Redirect
+                    if (item.id === 'mission_bio') {
+                        item.completed = true; DB.save();
+                        Modals.openBioSettings(); return;
+                    }
+                    if (item.id === 'mission_strategy') {
+                        item.completed = true; DB.save();
+                        UI.switchTab('strategy'); return;
+                    }
+                    if (item.id === 'mission_marathon') {
+                        item.completed = true; DB.save();
+                        UI.switchTab('marathon'); return;
+                    }
+
+                    if (item.id === 'setup_profile') { Modals.openBioSettings(); return; }
+
+                    if (item.isAi && !item.completed) {
+                        const txt = (item.text || "").toLowerCase();
+                        if (txt.includes('спорт') || txt.includes('зал')) { if (confirm("Открыть тренировки?")) UI.switchTab('home'); }
+                    }
+
+                    item.completed = !item.completed;
+
+                    // Gamification Logic
+                    const today = new Date().toISOString().split('T')[0];
+                    if (!DB.data.history) DB.data.history = {};
+                    if (!DB.data.history[today]) DB.data.history[today] = 0;
+
+                    if (item.completed) {
+                        App.addXp(50);
+                        DB.data.history[today]++;
+                    } else {
+                        App.addXp(-50);
+                        DB.data.history[today]--;
+                    }
+
+                    DB.save();
+                }
+            },
+            addXp(amount) {
+                if (!DB.data.xp) DB.data.xp = 0;
+                if (!DB.data.level) DB.data.level = 1;
+
+                DB.data.xp += amount;
+                if (DB.data.xp < 0) DB.data.xp = 0;
+
+                // Level Up Logic (1000 XP per level for simplicity)
+                const nextLevel = 1000 * DB.data.level;
+                if (DB.data.xp >= nextLevel) {
+                    DB.data.level++;
+                    alert(`LEVEL UP! Ты достиг ${DB.data.level} уровня! 🚀`);
+                }
+            },
+            renderHabits() {
+                const container = document.getElementById('habits-container');
+                const list = document.getElementById('habits-list');
+
+                if (!DB.data.habits || DB.data.habits.length === 0) {
+                    container.style.display = 'none';
+                    return;
+                }
+
+                container.style.display = 'block';
+                list.innerHTML = '';
+
+                DB.data.habits.forEach((h, i) => {
+                    const html = `
+                    <div onclick="App.toggleHabit(${i})" style="position:relative; overflow:hidden; background:var(--bg-card); padding:12px 15px; border-radius:14px; border:1px solid ${h.completed ? '#FFD60A' : 'rgba(255,255,255,0.05)'}; display:flex; align-items:center; gap:15px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+                        <!-- Active Background for completion -->
+                        ${h.completed ? '<div style="position:absolute; inset:0; background:linear-gradient(90deg, rgba(255,214,10,0.1) 0%, rgba(0,0,0,0) 100%); pointer-events:none;"></div>' : ''}
+                        
+                        <div style="width:22px; height:22px; border-radius:50%; border:2px solid ${h.completed ? '#FFD60A' : '#555'}; background:${h.completed ? '#FFD60A' : 'transparent'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.2s;">
+                            ${h.completed ? '<i class="fa-solid fa-check" style="color:#000; font-size:12px;"></i>' : ''}
+                        </div>
+                        <div style="flex:1; position:relative; z-index:1;">
+                            <div style="font-size:14px; font-weight:500; color:${h.completed ? '#fff' : '#ddd'}; ${h.completed ? '' : 'opacity:0.9'};">${h.text}</div>
+                        </div>
+                    </div>`;
+                    list.innerHTML += html;
+                });
+            },
+
+            toggleHabit(idx) {
+                DB.data.habits[idx].completed = !DB.data.habits[idx].completed;
+                if (DB.data.habits[idx].completed) {
+                    // XP Reward for habit
+                    App.addXp(10);
+                    // Haptic tweak (class)
+                    const item = document.querySelectorAll('#habits-list > div')[idx];
+                    item.style.transform = "scale(0.98)";
+                    setTimeout(() => item.style.transform = "scale(1)", 150);
+                }
+                DB.save();
+                this.renderHabits();
+            },
+
+            updateRings() {
+                const calc = (list) => {
+                    if (!list.length) return 0;
+                    return (list.filter(x => x.completed).length / list.length) * 100;
+                };
+                // Simplified logic: Body=First Ritual, Mind=Second, Flow=Missions
+                const r = DB.data.rituals;
+                const ringB = r.length > 0 && r[0].completed ? 100 : 0;
+                const ringM = r.length > 1 && r[1].completed ? 100 : 0;
+                const ringF = calc(DB.data.missions);
+
+                this.setRing('ring-body', ringB);
+                this.setRing('ring-mind', ringM);
+                this.setRing('ring-flow', ringF);
+            },
+            setRing(id, pct) {
+                const c = document.getElementById(id);
+                const r = c.getAttribute('r');
+                const len = 2 * Math.PI * r;
+                c.style.strokeDashoffset = len - (pct / 100) * len;
+            },
+            triggerCamera() {
+                document.getElementById('camera-input').click();
+            },
+            handleFile(input) {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    // UI Feedback
+                    const originalText = document.title;
+                    alert("🤖 Анализирую фото... (5-10 сек)");
+
+                    const formData = new FormData();
+                    formData.append('photo', file);
+
+                    // Send to n8n Webhook
+                    fetch('https://matf1.app.n8n.cloud/webhook/9026454e-fc49-44bc-a5f4-c1c88a4ca428', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Server Error');
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("AI Response:", data);
+
+                            // Parse Data (Adapter for various JSON formats)
+                            const result = Array.isArray(data) ? data[0] : data;
+
+                            const calories = parseInt(result.calories) || parseInt(result.kcal) || 0;
+                            const name = result.food_name || result.dish_name || result.name || "Еда";
+                            const protein = parseInt(result.protein) || 0;
+                            const fat = parseInt(result.fat) || 0;
+                            const carbs = parseInt(result.carbs) || 0;
+
+                            if (calories > 0) {
+                                // Init macros if missing
+                                if (!DB.data.macros) DB.data.macros = { protein: 0, fat: 0, carbs: 0 };
+
+                                DB.data.calories.current += calories;
+                                DB.data.macros.protein += protein;
+                                DB.data.macros.fat += fat;
+                                DB.data.macros.carbs += carbs;
+
+                                DB.save();
+
+                                // Refresh UI
+                                try { App.render(); } catch (e) { App.updateRings(); }
+
+                                alert(`✅ ${name}\n+${calories} ккал\n(Б: ${protein}, Ж: ${fat}, У: ${carbs})`);
+                            } else {
+                                alert("❌ AI не нашел еду на фото. Попробуй четче.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert("❌ Ошибка связи с AI (n8n).");
+                        })
+                        .finally(() => {
+                            input.value = ''; // Reset input
+                        });
+                }
+            },
+            addFoodManual() {
+                const val = parseInt(document.getElementById('inp-cal').value);
+                if (val) {
+                    DB.data.calories.current += val;
+                    DB.save();
+                    Modals.closeAll();
+                }
+            },
+            saveBio() {
+                const w = parseFloat(document.getElementById('bio-inp-weight').value);
+                const h = parseFloat(document.getElementById('bio-inp-height').value);
+                const a = parseFloat(document.getElementById('bio-inp-age').value);
+                const g = document.getElementById('bio-inp-gender').value;
+                const act = parseFloat(document.getElementById('bio-inp-activity').value);
+                const goal = document.getElementById('bio-inp-goal').value;
+                const sport = document.getElementById('bio-inp-sport').value;
+
+                DB.data.bio = { weight: w, height: h, age: a, gender: g, activity: act, goal: goal, sport: sport };
+
+                // Miffin-St Jeor
+                let bmr = (10 * w) + (6.25 * h) - (5 * a);
+                bmr += (g === 'male' ? 5 : -161);
+
+                // Activity * Goal Multiplier
+                let tdee = bmr * act;
+                if (goal === 'lose') tdee *= 0.85;
+                if (goal === 'gain') tdee *= 1.15;
+
+                DB.data.calories.target = Math.round(tdee);
+
+                DB.save();
+                Modals.closeAll();
+            },
+            analyzeFoodAI() {
+                const text = document.getElementById('ai-food-input').value;
+                if (!text || text.length < 3) return alert("Введите название еды");
+
+                // Check for storage key or prompt
+                let key = localStorage.getItem('openai_key') || '';
+                // No prompt as requested
+
+
+                // Backend Call
+                alert("🤖 Отправляю запрос на сервер...");
+
+                fetch(SERVER_URL + '/analyze_food', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                })
+                    .then(r => r.json())
+                    .then(info => {
+                        if (info.detail) throw new Error(info.detail); // FastAPI Error
+
+                        if (info.calories > 0) {
+                            // Populate fields
+                            document.getElementById('inp-food-name').value = info.name;
+                            document.getElementById('inp-cal').value = info.calories;
+
+                            // Auto-Add Logic
+                            if (!DB.data.macros) DB.data.macros = { protein: 0, fat: 0, carbs: 0 };
+
+                            DB.data.calories.current += info.calories;
+                            DB.data.macros.protein += (info.protein || 0);
+                            DB.data.macros.fat += (info.fat || 0);
+                            DB.data.macros.carbs += (info.carbs || 0);
+
+                            DB.save();
+                            try { App.render(); } catch (e) { App.updateRings(); }
+
+                            Modals.closeAll();
+                            alert(`✅ Добавлено: ${info.name}\n🔥 ${info.calories} ккал\n(Б:${info.protein} Ж:${info.fat} У:${info.carbs})`);
+                            document.getElementById('ai-food-input').value = ''; // Clean
+                        } else {
+                            alert("🤷‍♂️ Сервер не нашел еду в тексте.");
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e);
+                        alert("❌ Ошибка сервера: " + e.message + "\nУбедитесь, что backend запущен.");
+                    });
+            },
+
+            resetDemo() {
+                if (confirm("Сбросить всё?")) {
+                    localStorage.removeItem('mvp_state_v1');
+                    location.reload();
+                }
+            }
+        };
+
+
+
+        // Gym module is now in gym-v3.js (GymV3)
+
+
+
+
+    </script>
+    <script>
+        // STRATEGY (AI COACH & PLANNER)
+        const Strategy = {
+            state: 'focus', // focus, questions, result
+            data: {},
+
+            // Step 1: Submit Focus
+            submitFocus: function () {
+                const input = document.getElementById('strat-input-focus');
+                const val = input ? input.value.trim() : '';
+                if (!val) return alert('Введите цель!');
+
+                this.data.focus = val;
+
+                // Show Loading
+                const btn = document.querySelector('#strat-step-focus .primary-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> АНАЛИЗ...';
+
+                setTimeout(() => {
+                    this.generateQuestions(val);
+
+                    document.getElementById('strat-step-focus').style.display = 'none';
+                    document.getElementById('strat-step-questions').style.display = 'block';
+                    btn.innerHTML = originalText;
+                }, 800);
+            },
+
+            // Generate Questions based on Focus
+            generateQuestions: function (focus) {
+                const list = document.getElementById('strat-questions-list');
+                list.innerHTML = '';
+
+                const f = focus.toLowerCase();
+                let questions = [];
+
+                // 1. BUSINESS / MONEY
+                if (f.match(/бизнес|деньг|стартап|проект|зарабо|youtube|блог|продаж|маркет|клиент|доход|финанс|rich|money/)) {
+                    questions = [
+                        "Какая сейчас стадия и какая цель в цифрах?",
+                        "Что мешает больше всего (нет идеи, нет команды, нет продаж)?"
+                    ];
+
+                    // 2. STUDY / EDUCATION
+                } else if (f.match(/учеб|школ|экзам|курс|язык|универ|класс|егэ|огэ|оценк|знани|диплом|сесси|учит|домашк|урок/)) {
+                    questions = [
+                        "В каком ты классе / на каком курсе (сколько лет)?",
+                        "Какие предметы / темы даются сложнее всего?",
+                        "Сколько времени в день реально готов уделять?"
+                    ];
+
+                    // 3. FITNESS / HEALTH
+                } else if (f.match(/похуд|вес|тел|спорт|мышц|пресс|жир|зал|трени|форм|сушк|здоров|диет/)) {
+                    questions = [
+                        "Какой текущий вес/форма и к чему идем?",
+                        "Сколько дней в неделю готов тренироваться?"
+                    ];
+
+                    // 4. IT / CODING
+                } else if (f.match(/код|програм|it|python|js|java|c\+\+|веб|сайт|прилож|разраб|dev|git/)) {
+                    questions = [
+                        "Какой текущий уровень и стек технологий?",
+                        "Какой проект хочешь сделать за неделю?"
+                    ];
+
+                    // DEFAULT
+                } else {
+                    questions = [
+                        "Какая сейчас стадия и главная сложность?",
+                        "Какой идеальный результат через 7 дней?"
+                    ];
+                }
+
+                this.data.questions = questions;
+
+                questions.forEach((q, i) => {
+                    list.innerHTML += `
+                        <div style="margin-bottom:15px;">
+                            <label style="display:block; color:#fff; font-weight:700; margin-bottom:10px; font-size:14px;">${q}</label>
+                            <input type="text" id="strat-q-${i}" class="step-input" placeholder="Ваш ответ..." 
+                                style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); padding:15px; border-radius:12px; color:#fff;">
+                        </div>
+                    `;
+                });
+            },
+
+            // Step 2: Submit Answers
+            submitAnswers: function () {
+                const inputs = document.querySelectorAll('#strat-questions-list input');
+                let answers = [];
+                let allFilled = true;
+                inputs.forEach(inp => {
+                    if (!inp.value.trim()) allFilled = false;
+                    answers.push(inp.value);
+                });
+
+                if (!allFilled) return alert('Пожалуйста, ответьте на все вопросы, чтобы ИИ составил точный план.');
+                this.data.answers = answers;
+
+                this.finishQuestions();
+            },
+
+            finishQuestions: function () {
+                // 1. CHECK LIMITS
+                const user = DB.data.user || { status: 'pro', requests: 0, lastDate: '' };
+                const isDev = user.status === 'elite';
+                const today = new Date().toDateString();
+
+                // Reset counter if new day
+                if (user.lastDate !== today) {
+                    user.requests = 0;
+                    user.lastDate = today;
+                    DB.data.user = user;
+                    DB.save();
+                }
+
+                // Check Pro Limit (3 per day)
+                if (!isDev && user.requests >= 3) {
+                    alert("⛔ ЛИМИТ ИСЧЕРПАН\n\nУ вас статус PRO: доступно 3 генерации в день.\nПриходите завтра или получите статус ELITE.");
+                    return;
+                }
+
+                // 2. START ANIMATION
+                const btn = document.querySelector('#strat-step-questions .primary-btn');
+                const originalText = btn.innerHTML;
+
+                // PREMIUM Animation Overlay (CLEAN & MINIMAL)
+                const overlay = document.createElement('div');
+                overlay.id = 'hacker-overlay';
+                overlay.style.cssText = `position:fixed; inset:0; background:rgba(0,0,0,0.95); backdrop-filter:blur(10px); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; padding:20px; text-align:center;`;
+                overlay.innerHTML = `
+                    <div style="font-size:50px; margin-bottom:30px; color:#AF52DE; filter:drop-shadow(0 0 20px rgba(175,82,222,0.5));">
+                        <i class="fa-solid fa-brain fa-spin" style="--fa-animation-duration: 2s;"></i>
+                    </div>
+                    <div id="hacker-text" style="font-size:20px; font-weight:700; margin-bottom:30px; letter-spacing:2px; color:#fff;">
+                        MVP AI ANALYZING
+                    </div>
+                    <div style="width:200px; height:4px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                        <div id="hacker-bar" style="height:100%; background:#AF52DE; width:0%; transition:width 0.4s ease; box-shadow: 0 0 10px #AF52DE;"></div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+
+                // Progress Bar Simulation ONLY
+                setTimeout(() => { if (document.getElementById('hacker-bar')) document.getElementById('hacker-bar').style.width = '30%'; }, 500);
+                setTimeout(() => { if (document.getElementById('hacker-bar')) document.getElementById('hacker-bar').style.width = '70%'; }, 2000);
+
+                // CALL AI
+                this.generateFinalPlan().then(() => {
+                    if (document.getElementById('hacker-bar')) {
+                        document.getElementById('hacker-bar').style.width = '100%';
+                    }
+
+                    setTimeout(() => {
+                        if (overlay) overlay.remove();
+                        btn.innerHTML = originalText;
+                        document.getElementById('strat-step-questions').style.display = 'none';
+                        document.getElementById('strat-step-result').style.display = 'block';
+                    }, 500);
+                });
+            },
+
+            // Generate Final Plan (AI Call)
+            generateFinalPlan: async function () {
+                // Use Global SERVER_URL
+                const AI_API_URL = SERVER_URL;
+
+                try {
+                    const res = await fetch(`${AI_API_URL}/generate_strategy`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            focus: this.data.focus,
+                            answers: this.data.answers
+                        })
+                    });
+
+                    const json = await res.json();
+
+                    if (json.status === 'success' && json.data) {
+                        this.data.ai_data = json.data;
+                        this.data.startDate = Date.now(); // SET START DATE FOR PROGRESSION
+
+                        // Increment Counter
+                        const user = DB.data.user || { status: 'pro', requests: 0 };
+                        user.requests++;
+                        user.lastDate = new Date().toDateString();
+                        DB.data.user = user;
+                        DB.save();
+                        localStorage.setItem('titan_user_backup', JSON.stringify(user));
+
+                        // BACKUP SAVE DIRECTLY TO LOCALSTORAGE
+                        localStorage.setItem('titan_strategy_backup', JSON.stringify(this.data));
+
+                        this.renderStrategy(json.data);
+                    } else {
+                        throw new Error("AI Error: " + (json.message || "Invalid response"));
+                    }
+                } catch (e) {
+                    console.error("AI Generation Failed:", e);
+                    alert("Ошибка связи с ИИ. Проверьте, запущен ли сервер.");
+                    const ov = document.getElementById('hacker-overlay');
+                    if (ov) ov.remove();
+                }
+
+                // Save Result
+                DB.data.strategy = this.data;
+                DB.save();
+            },
+
+            startZero: function () {
+                if (!DB.data) DB.data = {};
+                DB.data.strategyStarted = true;
+                DB.save();
+                this.init();
+            },
+
+            // RENDER STRATEGY
+            renderStrategy: function (data) {
+                if (!data) return;
+
+                // Update Status Info in UI
+                const user = DB.data.user || { status: 'pro', requests: 0 };
+                const limit = user.status === 'elite' ? '∞' : 3;
+                const left = user.status === 'elite' ? '∞' : (3 - user.requests);
+
+                // 1. Title Area with Status Badge
+                // 1. Update Title Area (Fixed)
+                const goalEl = document.getElementById('strat-final-goal');
+                if (goalEl) goalEl.innerText = this.data.focus || 'Моя Цель';
+
+                // 2. Status Badge with requests
+                const resultStep = document.getElementById('strat-step-result');
+                let statusBadge = document.getElementById('strat-status-badge');
+                if (!statusBadge) {
+                    statusBadge = document.createElement('div');
+                    statusBadge.id = 'strat-status-badge';
+                    statusBadge.style.textAlign = 'center';
+                    statusBadge.style.marginBottom = '10px';
+                    resultStep.prepend(statusBadge);
+                }
+                statusBadge.innerHTML = `
+                    <div style="font-size:10px; background:rgba(255,255,255,0.1); padding:5px 12px; border-radius:12px; color:#888; font-weight:700; display:inline-block; border:1px solid rgba(255,255,255,0.1);">
+                        ${user.status.toUpperCase()} • ОСТАЛОСЬ: <span style="color:${left === 0 ? '#FF3B30' : '#fff'}">${left}</span>
+                    </div>
+                `;
+
+
+                // Removed duplicate header insertion logic
+
+
+                // 2. Charts (Visuals)
+                const prob = data.stats.impact || 88;
+                document.getElementById('strat-prob-val').innerText = prob + '%';
+                const ring = document.getElementById('strat-chart-ring');
+                if (ring) ring.style.strokeDasharray = `${prob}, 100`;
+
+                const barsContainer = document.getElementById('strat-chart-bars');
+                if (barsContainer) {
+                    barsContainer.innerHTML = '';
+                    const stats = [
+                        { val: data.stats.complexity, color: '#FF3B30', label: 'Сложн.' },
+                        { val: data.stats.time_required, color: '#FFD60A', label: 'Время' },
+                        { val: data.stats.sustainability, color: '#30D158', label: 'Долгоср.' },
+                        { val: data.stats.impact, color: '#AF52DE', label: 'Влияние' }
+                    ];
+                    stats.forEach(s => {
+                        barsContainer.innerHTML += `
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:5px; flex:1;">
+                            <div style="width:100%; height:80px; background:rgba(255,255,255,0.05); border-radius:4px; position:relative; overflow:hidden;">
+                                <div style="position:absolute; bottom:0; left:0; right:0; height:${s.val}%; background:${s.color}; opacity:0.8;"></div>
+                            </div>
+                            <div style="font-size:10px; color:#888;">${s.label}</div>
+                        </div>`;
+                    });
+                }
+
+                // 3. RENDER DAYS
+                const planContainer = document.getElementById('strategy-days');
+                if (planContainer) {
+                    planContainer.innerHTML = '';
+
+                    if (data.days && Array.isArray(data.days)) {
+                        // Time Logic
+                        const startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
+                        const now = new Date();
+                        const diffTime = Math.abs(now - startDate);
+                        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                        data.days.forEach((dayObj, i) => {
+                            // 1. Lock Logic
+                            const isLocked = i > diffDays;
+
+                            // 2. Auto-Mission: Add today's strategy focus to Daily Missions
+                            if (!isLocked && i === diffDays) {
+                                const mId = `strat_mission_${startDate.getTime()}_${i}`;
+                                if (DB.data.missions && !DB.data.missions.find(m => m.id === mId)) {
+                                    DB.data.missions.unshift({
+                                        id: mId,
+                                        text: `🚀 Стратегия: ${dayObj.title}`,
+                                        completed: false,
+                                        isAi: true,
+                                        xp: 150,
+                                        type: 'strategy'
+                                    });
+                                    DB.save();
+                                    setTimeout(() => App.render(), 500); // Sync UI
+                                }
+                            }
+
+                            const unlockDate = new Date(startDate);
+                            unlockDate.setDate(startDate.getDate() + i);
+                            const dateStr = unlockDate.toLocaleDateString();
+
+                            const lockOverlay = isLocked ? `
+                                <div style="position:absolute; inset:0; backdrop-filter:blur(8px); background:rgba(0,0,0,0.6); z-index:2; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                                    <div style="background:rgba(20,20,20,0.9); padding:10px 20px; border-radius:24px; border:1px solid rgba(255,255,255,0.1); font-size:12px; font-weight:600; color:#888; display:flex; gap:10px; align-items:center; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                                        <i class="fa-solid fa-lock" style="color:#555;"></i> 
+                                        <span>Откроется ${dateStr}</span>
+                                    </div>
+                                </div>` : '';
+
+                            // Build Tasks List
+                            let tasksHtml = '';
+                            if (dayObj.tasks && Array.isArray(dayObj.tasks)) {
+                                dayObj.tasks.forEach(task => {
+                                    tasksHtml += `
+                                    <div style="display:flex; gap:10px; align-items:start; margin-bottom:8px;">
+                                        <div style="width:6px; height:6px; background:#AF52DE; border-radius:50%; margin-top:6px; flex-shrink:0;"></div>
+                                        <div style="font-size:13px; color:#ddd; line-height:1.4;">${task}</div>
+                                    </div>`;
+                                });
+                            }
+
+                            const html = `
+                            <div style="position:relative; margin-bottom:15px;">
+                                ${lockOverlay}
+                                <div style="background:var(--bg-card); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                        <div style="font-weight:700; color:#AF52DE; font-size:15px;">ДЕНЬ ${i + 1}: ${dayObj.title}</div>
+                                    </div>
+                                    <div>${tasksHtml}</div>
+                                </div>
+                            </div>`;
+
+                            planContainer.innerHTML += html;
+                        });
+                    }
+
+                    // Stylish Reset Button
+                    planContainer.innerHTML += `
+                        <div style="margin-top:40px; text-align:center;">
+                             <button onclick="Strategy.reset();" style="
+                                background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);
+                                color: white;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 12px;
+                                font-size: 13px;
+                                font-weight: 700;
+                                cursor: pointer;
+                                box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3);
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 8px;
+                                transition: transform 0.2s;
+                             "
+                             onmouseover="this.style.transform='scale(1.05)'"
+                             onmouseout="this.style.transform='scale(1)'"
+                             >
+                                <i class="fa-solid fa-trash-can"></i> УДАЛИТЬ ПЛАН И НАЧАТЬ ЗАНОВО
+                             </button>
+                             <div style="font-size:11px; color:#555; margin-top:10px;">Действие необратимо</div>
+                        </div>
+                    `;
+                }
+            },
+
+            // Reset Strategy
+            reset: function () {
+                if (!confirm('Вы уверены? Текущий план будет удален безвозвратно.')) return;
+                this.data = { focus: '', answers: [], ai_data: null };
+
+                // Clear from DB & LocalStorage Backup & Regular LocalStorage
+                // Clear from DB & LocalStorage Backup & Regular LocalStorage
+                DB.data.strategy = null;
+                DB.data.strategyStarted = false; // Reset to Day 0
+                DB.save();
+                localStorage.removeItem('titan_strategy_backup');
+
+                // Clear UI artifacts
+                const headers = document.querySelectorAll('.strat-header-info');
+                headers.forEach(h => h.remove());
+
+                this.init(); // Reload UI
+            },
+
+            // Init (Check Persistence)
+            init: function () {
+                console.log("🔄 Strategy.init() called");
+
+                // 0. RESTORE USER DATA (Backup Fix)
+                try {
+                    const uBackup = localStorage.getItem('titan_user_backup');
+                    if (uBackup) {
+                        const u = JSON.parse(uBackup);
+                        if (!DB.data.user || u.requests > (DB.data.user.requests || 0)) {
+                            DB.data.user = u;
+                            console.log("👤 User data restored from backup:", u);
+                        }
+                    }
+                } catch (e) { }
+                if (!DB.data.user) DB.data.user = { status: 'pro', requests: 0 };
+
+                // 0.5 Check Strategy Start (Day 0)
+                if (!DB.data.strategyStarted) {
+                    document.getElementById('strat-step-zero').style.display = 'block';
+                    document.getElementById('strat-step-focus').style.display = 'none';
+                    document.getElementById('strat-step-questions').style.display = 'none';
+                    document.getElementById('strat-step-result').style.display = 'none';
+                    return;
+                }
+
+                // Hide Intro if started
+                const intro = document.getElementById('strat-step-zero');
+                if (intro) intro.style.display = 'none';
+
+                // 1. Try DB
+                let loadedData = null;
+                if (DB.data && DB.data.strategy && DB.data.strategy.ai_data) {
+                    console.log("✅ Found strategy in DB", DB.data.strategy);
+                    loadedData = DB.data.strategy;
+                }
+
+                // 2. Try Emergency Backup (Direct LocalStorage)
+                if (!loadedData) {
+                    const backup = localStorage.getItem('titan_strategy_backup');
+                    if (backup) {
+                        try {
+                            const parsed = JSON.parse(backup);
+                            if (parsed && parsed.ai_data) {
+                                console.log("⚠️ Found strategy in BACKUP (localStorage)");
+                                loadedData = parsed;
+                                // Restore to DB to sync
+                                DB.data.strategy = loadedData;
+                                DB.save();
+                            }
+                        } catch (e) {
+                            console.error("Backup corrupted", e);
+                        }
+                    }
+                }
+
+                if (loadedData) {
+                    this.data = loadedData;
+                    // Data exists -> Show Result
+                    console.log("➡️ Rendering Result View");
+                    document.getElementById('strat-step-focus').style.display = 'none';
+                    document.getElementById('strat-step-questions').style.display = 'none';
+                    document.getElementById('strat-step-result').style.display = 'block';
+                    this.renderStrategy(this.data.ai_data);
+                } else {
+                    // No Data -> Show Focus Input
+                    console.log("➡️ Rendering Input View");
+                    document.getElementById('strat-step-focus').style.display = 'block';
+                    document.getElementById('strat-step-questions').style.display = 'none';
+                    document.getElementById('strat-step-result').style.display = 'none';
+
+                    // ⚠️ CHECK FOR MANUAL RESTORE POSSIBILITY
+                    const rawBackup = localStorage.getItem('titan_strategy_backup');
+                    if (rawBackup && rawBackup.length > 50) {
+                        // Add Restore Button if not exists
+                        const container = document.querySelector('#strat-step-focus');
+                        if (container && !document.getElementById('titan-restore-btn')) {
+                            const div = document.createElement('div');
+                            div.id = 'titan-restore-btn';
+                            div.style.marginTop = '20px';
+                            div.style.textAlign = 'center';
+                            div.innerHTML = `
+                                <div style="color:#AF52DE; font-size:12px; margin-bottom:8px;">Найдена сохраненная стратегия</div>
+                                <button onclick="Strategy.forceRestore()" style="background:#222; border:1px solid #444; color:#fff; padding:8px 16px; border-radius:8px; cursor:pointer;">
+                                    <i class="fa-solid fa-cloud-arrow-down"></i> Восстановить
+                                </button>
+                             `;
+                            container.appendChild(div);
+                        }
+                    }
+                }
+            },
+
+            // Force Restore Handler (NO RELOAD)
+            forceRestore: function () {
+                const backup = localStorage.getItem('titan_strategy_backup');
+                if (backup) {
+                    try {
+                        this.data = JSON.parse(backup);
+                        DB.data.strategy = this.data;
+                        DB.save();
+
+                        // Direct UI Update
+                        document.getElementById('strat-step-focus').style.display = 'none';
+                        const btn = document.getElementById('titan-restore-btn');
+                        if (btn) btn.remove();
+
+                        document.getElementById('strat-step-result').style.display = 'block';
+                        this.renderStrategy(this.data.ai_data);
+
+                    } catch (e) {
+                        alert('Ошибка данных бекапа: ' + e.message);
+                    }
+                } else {
+                    alert('Нет данных для восстановления');
+                }
+            },
+
+            // LEGACY MOCK (Fallback)
+            renderMockStrategy: function () {
+                // 1. Title
+                const titles = [
+                    "🚀 Прорыв Недели: " + this.data.focus,
+                    "👑 Стратегия Доминирования: " + this.data.focus,
+                    "🔥 Режим Берсерка: " + this.data.focus
+                ];
+                const title = titles[Math.floor(Math.random() * titles.length)];
+                document.getElementById('strat-final-goal').innerText = title;
+
+                // 2. Probability Chart
+                const prob = 85 + Math.floor(Math.random() * 10);
+                document.getElementById('strat-prob-val').innerText = prob + '%';
+                document.getElementById('strat-chart-ring').style.strokeDasharray = `${prob}, 100`;
+
+                // 3. Bars
+                const barsContainer = document.getElementById('strat-chart-bars');
+                barsContainer.innerHTML = '';
+                for (let i = 0; i < 4; i++) { // Changed to 4 for consistency
+                    const h = 40 + Math.random() * 60;
+                    const color = ['#FF3B30', '#FFD60A', '#30D158', '#AF52DE'][i];
+                    barsContainer.innerHTML += `
+            < div style = "display:flex; flex-direction:column; align-items:center; gap:5px; flex:1;" >
+                <div style="width:100%; height:80px; background:rgba(255,255,255,0.05); border-radius:4px; position:relative; overflow:hidden;">
+                    <div style="position:absolute; bottom:0; left:0; right:0; height:${h}%; background:${color}; opacity:0.8;"></div>
+                </div>
+                    </div > `;
+                }
+
+                // 4. Tasks Mockup (Smart Steps & Locking)
+                const planContainer = document.getElementById('strategy-days');
+                planContainer.innerHTML = '';
+
+                // Generate specific plan based on focus
+                const f = this.data.focus.toLowerCase();
+                let steps = [];
+
+                if (f.includes('бизнес') || f.includes('стартап')) {
+                    steps = [
+                        "Анализ конкурентов и поиск 'Голубого океана'",
+                        "Создание MVP (Минимального продукта)",
+                        "Первые 10 холодных контактов / продаж",
+                        "Анализ обратной связи и улучшение",
+                        "Настройка маркетинговой воронки",
+                        "Масштабирование: поиск сотрудников",
+                        "Ретроспектива и план на месяц"
+                    ];
+                } else if (f.includes('учеба') || f.includes('экзам')) {
+                    steps = [
+                        "Аудит знаний: тест и выявление пробелов",
+                        "Глубокое погружение: Теория (Спринт 1)",
+                        "Практика: Решение 50 задач",
+                        "Работа над ошибками и повторение",
+                        "Симуляция экзамена (Таймер)",
+                        "Финальная полировка 'слабых зон'",
+                        "Отдых перед боем (Восстановление)"
+                    ];
+                } else {
+                    // Generic
+                    steps = [
+                        "Декомпозиция цели на подзадачи",
+                        "Первый шаг: выход из зоны комфорта",
+                        "Набор оборотов: Увеличение нагрузки",
+                        "Экватор: Анализ промежуточных итогов",
+                        "Устранение узких мест",
+                        "Финальный рывок",
+                        "Восстановление и награда"
+                    ];
+                }
+
+                const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                days.forEach((day, i) => {
+                    let taskText = steps[i] || `Активная работа над "${this.data.focus}"`;
+                    // ... (rest of mock rendering logic if needed, but simplified for brevity)
+                    const bgStyle = i === 0 ? 'background: linear-gradient(90deg, #1C1C1E 0%, #2C2C2E 100%); border:1px solid #30D158;' : (i > 0 ? 'filter:blur(2px); opacity:0.5; pointer-events:none;' : 'background:var(--bg-card);');
+                    const lockIcon = i > 0 ? '<i class="fa-solid fa-lock" style="color:#888;"></i>' : '';
+
+                    planContainer.innerHTML += `
+            < div style = "${bgStyle} padding:15px; border-radius:12px; margin-bottom:10px; display:flex; align-items:center; gap:10px;" >
+                        <div style="width:30px; font-weight:bold;">${day}</div>
+                        <div style="flex:1;">${taskText}</div>
+                        ${lockIcon}
+                     </div > `;
+                });
+
+                // Add to Daily Missions
+                const todayTask = {
+                    id: Date.now(),
+                    text: "🎯 Стратегия: " + steps[0],
+                    completed: false,
+                    isAi: true,
+                    priority: 'high'
+                };
+                if (!DB.data.missions) DB.data.missions = [];
+                if (!DB.data.missions.find(t => t.text === todayTask.text)) {
+                    DB.data.missions.unshift(todayTask);
+                    DB.save();
+                }
+            },
+
+            // Check if plan exists on load
+            render: function () {
+                if (DB.data.strategy && DB.data.strategy.focus) {
+                    // Restore Result View
+                    document.getElementById('strat-step-focus').style.display = 'none';
+                    document.getElementById('strat-step-questions').style.display = 'none';
+                    document.getElementById('strat-step-result').style.display = 'block';
+
+                    this.data = DB.data.strategy;
+                    // Re-render visuals using saved data (or simple regenerate visual for now)
+                    this.generateFinalPlan();
+                }
+            },
+
+            reset: function () {
+                if (confirm('Удалить эту стратегию и создать новую?')) {
+                    DB.data.strategy = null;
+                    DB.save();
+                    this.data = {};
+
+                    document.getElementById('strat-step-result').style.display = 'none';
+                    document.getElementById('strat-step-focus').style.display = 'block';
+                    document.getElementById('strat-input-focus').value = '';
+                }
+            }
+        };
+
+        // TITAN MARATHON LOGIC (MISSION MODE)
+        const Marathon = {
+            // Static default protocol (Detailed)
+            defaultProtocol: {
+                base: [
+                    { title: "⏰ 06:00 ПОДЪЕМ", desc: "Победа над кнопкой 'Отложить'. Встань сразу." },
+                    { title: "🚿 ХОЛОДНЫЙ ДУШ", desc: "60 секунд под ледяной водой. Включи таймер. Не кричи." },
+                    { title: "⚡ ЗАРЯДКА", desc: "10 минут. Разгони лимфу и кровь." },
+                    { title: "🧘 МЕДИТАЦИЯ", desc: "10 минут тишины. Просто наблюдай за дыханием." },
+                    { title: "📚 ЧТЕНИЕ", desc: "30 страниц книги. Нон-фикшн. Телефон в другой комнате." },
+                    { title: "💧 2 ЛИТРА ВОДЫ", desc: "Выпей стакан сразу после пробуждения." }
+                ],
+                days: [
+                    {
+                        title: "СТАРТ",
+                        briefing: "Сегодня мы закладываем фундамент. Твоя задача — отрезать лишнее и зафиксировать 'Точку А'.",
+                        tasks: [
+                            { title: "📹 Видео-Капсула", desc: "Возьми телефон. Запиши видео на 1 минуту. Скажи: 'Я начинаю этот путь, потому что...' и 'Я обещаю дойти до конца'. Сохрани его, не выкладывай." },
+                            { title: "🧹 Цифровой Дзен", desc: "Зайди в соцсети. Отпишись от 10 аккаунтов, которые тебя бесят или тратят время. Почисти ленту." },
+                            { title: "🏋️ ТРЕНИРОВКА A", desc: "Выполни силовую тренировку (см. вкладку Тренировки -> Программа А)." },
+                            { title: "🚫 Стоп-Сахар", desc: "Сегодня ни грамма сладкого. Проверь состав продуктов. Сахар — это враг." },
+                            { title: "🧠 Нейробика", desc: "Чисти зубы и ешь левой рукой (если правша). Это включает новые нейронные связи." }
+                        ]
+                    },
+                    {
+                        title: "ЭНЕРГИЯ",
+                        briefing: "Твое тело — это машина. Сегодня мы заливаем только качественное топливо.",
+                        tasks: [
+                            { title: "🥗 Живое Питание", desc: "В каждый прием пищи добавь овощ или фрукт. Живая клетчатка." },
+                            { title: "🚫 Без Мучного", desc: "Хлеб, булки, печенье — в мусорку. Только сложные углеводы (гречка, рис)." },
+                            { title: "🫁 Дыхание Вима Хофа", desc: "Сделай 3 круга глубокого дыхания. Найди инструкцию на YouTube. Насыть кровь кислородом." },
+                            { title: "🧠 Микро-Навык", desc: "Потрать 20 минут, чтобы выучить что-то: 10 иностранных слов, морской узел, горячие клавиши." },
+                            { title: "😴 Идеальный Сон", desc: "Ложись до 23:00. Полная темнота. Проветри комнату." }
+                        ]
+                    },
+                    // ... (Other days with same detail level - mocked for brevity, can be expanded)
+                    {
+                        title: "СИЛА",
+                        briefing: "Боль — это слабость, покидающая тело. Сегодня мы строим броню.",
+                        tasks: [
+                            { title: "🏋️ ТРЕНИРОВКА B", desc: "Интенсивная тренировка. Работай на пульсе." },
+                            { title: "🧱 Планка", desc: "Сделай 3 подхода планки на максимум времени. Запиши результат." },
+                            { title: "💆 Самомассаж", desc: "Разомни шею и трапецию руками или теннисным мячом. Сними зажимы." },
+                            { title: "👀 Гимнастика глаз", desc: "Сделай 'Пальминг'. Дай глазам отдых от экранов." },
+                            { title: "📵 Ужин Тишины", desc: "Ешь без телефона, телевизора и книги. Только вкус еды." }
+                        ]
+                    },
+                    {
+                        title: "ФОКУС",
+                        briefing: "Твое внимание — это валюта. Сегодня ты инвестируешь его в главное.",
+                        tasks: [
+                            { title: "🧠 DEEP WORK", desc: "90 минут работы над ОДНОЙ задачей. Телефон в авиарежиме. Дверь закрыта." },
+                            { title: "🍅 Метод Помодоро", desc: "Весь день работай таймерами: 25 мин работа / 5 мин отдых." },
+                            { title: "🍏 Витамин", desc: "Сделай смузи или выпей стакан свежевыжатого сока." },
+                            { title: "🧩 Логика", desc: "Реши судоку или сложную головоломку. Заставь мозг скрипеть." },
+                            { title: "🎧 Аудиокнига", desc: "Слушай полезную книгу пока идешь или едешь. Не музыку." }
+                        ]
+                    },
+                    {
+                        title: "ВОЛЯ",
+                        briefing: "Дисциплина — это делать то, что нужно, когда не хочется.",
+                        tasks: [
+                            { title: "🏋️ ТРЕНИРОВКА A", desc: "Вторая силовая на неделе. Увеличь веса." },
+                            { title: "🤐 Интервалка", desc: "Последний прием пищи за 4 часа до сна. Никаких ночных дожоров." },
+                            { title: "🚿 Контрастный Душ", desc: "3 цикла: Горячая (30 сек) -> Холодная (30 сек). Заканчивай холодной." },
+                            { title: "🎬 Кинотерапия", desc: "Посмотри фильм со смыслом. 'Одержимость', 'Мирный воин' и т.д." },
+                            { title: "📝 Фрирайтинг", desc: "Поставь таймер на 10 мин и пиши ВСЕ мысли подряд на бумагу. Очисти кеш мозга." }
+                        ]
+                    },
+                    {
+                        title: "ЯСНОСТЬ",
+                        briefing: "Наводим порядок в голове и жизни перед финалом.",
+                        tasks: [
+                            { title: "📊 Колесо Баланса", desc: "Нарисуй круг, раздели на 8 сфер. Оцени каждую от 1 до 10. Где просадка?" },
+                            { title: "💰 Финансы", desc: "Проверь свои подписки. Отмени то, чем не пользуешься. Посчитай траты за неделю." },
+                            { title: "🚶 Новый Маршрут", desc: "Пройдись до дома/магазина дорогой, которой никогда не ходил." },
+                            { title: "🤝 Благодарность", desc: "Напиши 3 людям 'Спасибо' за что-то конкретное. Разгони позитив." },
+                            { title: "🚫 Без Сахара", desc: "Еще один день чистого питания." }
+                        ]
+                    },
+                    {
+                        title: "РЕЗУЛЬТАТ",
+                        briefing: "Финальный Босс. Сегодня ты докажешь, что ты изменился.",
+                        tasks: [
+                            { title: "☠️ ТРЕНИРОВКА BOSS", desc: "Сделай на 20% больше повторений, чем обычно. Умри, но сделай." },
+                            { title: "📵 Дофаминовый Детокс", desc: "Минимум соцсетей. Максимум реальности." },
+                            { title: "📹 Видео-Финал", desc: "Посмотри видео Дня 1. Запиши новое: 'Я смог'. Сравни себя." },
+                            { title: "🛁 SPA Релакс", desc: "Прими ванну с солью, сходи в баню. Ты заслужил." },
+                            { title: "🏆 Награда", desc: "Купи себе то, что давно хотел. Ты прошел Путь Титана." }
+                        ]
+                    }
+                ]
+            },
+
+            init: function () {
+                // 1. Ensure Persistent Data
+                if (!DB.data.marathon) {
+                    // State: Not Started, Day 0
+                    DB.data.marathon = {
+                        started: false,
+                        day: 0,
+                        unlocked: false,
+                        questsCompleted: [],
+                        baseCompleted: []
+                    };
+                }
+
+                // 2. Load Content (Protocol)
+                if (!DB.data.marathonProtocol) {
+                    DB.data.marathonProtocol = JSON.parse(JSON.stringify(this.defaultProtocol));
+                }
+
+                // 3. Daily Reset Logic
+                const todayStr = new Date().toDateString();
+                if (DB.data.lastLoginDate !== todayStr) {
+                    if (DB.data.habits) {
+                        DB.data.habits.forEach(h => h.completed = false);
+                    }
+                    DB.data.lastLoginDate = todayStr;
+                }
+
+                DB.save();
+                this.render();
+            },
+
+            render: function () {
+                const container = document.getElementById('marathon-dynamic-container');
+                if (!container) return;
+
+                const data = DB.data.marathon;
+
+                // 1. NOT STARTED (Zero State)
+                if (!data.started) {
+                    container.innerHTML = `
+                         <div style="text-align:center; padding-top:40px;">
+                              <div style="width:100px; height:100px; background:rgba(255,59,48,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 30px; border:1px solid #FF3B30; box-shadow:0 0 30px rgba(255,59,48,0.2);">
+                                  <i class="fa-solid fa-fire" style="font-size:40px; color:#FF3B30;"></i>
+                              </div>
+                              <h1 style="font-size:28px; font-weight:800; margin-bottom:10px;">TITAN PROTOCOL</h1>
+                              <p style="color:#888; margin-bottom:40px; line-height:1.5;">7-дневный марафон, который перестроит твой дофамин, тело и дух.</p>
+                              <button class="primary-btn" onclick="Marathon.startProtocol()" style="
+                                  background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);
+                                  color:#fff; box-shadow:0 10px 40px rgba(255, 59, 48, 0.4); font-weight:800; text-transform:uppercase;
+                                  display: block; margin: 0 auto;">
+                                  НАЧАТЬ ТРАНСФОРМАЦИЮ
+                              </button>
+                         </div>
+                    `;
+                    return;
+                }
+
+                // 2. DAY 0 (INTRO)
+                if (data.day === 0) {
+                    container.innerHTML = `
+                         <div style="padding:20px; text-align:center;">
+                             <div style="font-size:50px; margin-bottom:20px;">👋</div>
+                             <h2 style="font-size:24px; font-weight:700; margin-bottom:15px; color:#fff;">Добро пожаловать</h2>
+                             <div style="text-align:left; background:rgba(255,255,255,0.05); padding:20px; border-radius:16px; margin-bottom:30px; border:1px solid rgba(255,255,255,0.1);">
+                                 <p style="color:#ddd; line-height:1.6; margin-bottom:15px;">
+                                     Это не просто список задач. Это протокол пересборки.
+                                 </p>
+                                 <p style="color:#ddd; line-height:1.6; margin-bottom:0;">
+                                     🔥 <strong>Ритуалы добавлены:</strong> На твой главный экран добавлены 4 фундаментальные привычки. Они останутся с тобой навсегда.
+                                 </p>
+                             </div>
+                             
+                             <p style="color:#666; font-size:14px; margin-bottom:30px;">День 0 — это знакомство.<br>Основная работа начнется завтра.</p>
+                             
+                             <button class="primary-btn" onclick="Marathon.finishDay0()" style="
+                                 background: #333; color:#fff; border:1px solid #444; display: block; margin: 0 auto;">
+                                 Я ГОТОВ. ДО ЗАВТРА 🌙
+                             </button>
+                         </div>
+                     `;
+                    return;
+                }
+
+                // 3. DAY 1..7 (LOCKED)
+                if (!data.unlocked) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding-top:50px;">
+                            <h2 style="font-size:40px; font-weight:900; color:rgba(255,255,255,0.1); margin-bottom:-20px;">DAY ${data.day}</h2>
+                            <h2 style="font-size:28px; font-weight:800; color:#FF3B30; margin-bottom:10px;">ДЕНЬ ${data.day}</h2>
+                            <p style="color:#888; margin-bottom:40px;">Испытание ждет.</p>
+                            <button class="primary-btn" onclick="Marathon.unlockDay()" style="
+                                background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);
+                                color:#fff; box-shadow:0 10px 40px rgba(255, 59, 48, 0.4); width:80%;
+                                display: block; margin: 0 auto;">
+                                НАЧАТЬ ДЕНЬ <i class="fa-solid fa-lock-open" style="margin-left:10px;"></i>
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 4. ACTIVE DAY
+                this.renderActiveDay(data);
+            },
+
+            renderActiveDay: function (data) {
+                const container = document.getElementById('marathon-dynamic-container');
+                const protocol = DB.data.marathonProtocol;
+                const dayData = protocol.days[data.day - 1]; // day 1 is index 0
+
+                if (!dayData) return;
+
+                let html = `
+                    <div style="margin-bottom:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:10px;">
+                             <div style="font-size:12px; font-weight:700; color:#FF3B30; letter-spacing:1px;">ДЕНЬ ${data.day} / 7</div>
+                             <div style="font-size:12px; color:#666;">${Math.round((data.questsCompleted.length / dayData.tasks.length) * 100)}%</div>
+                        </div>
+                        <h2 style="margin:0; font-size:20px;">${dayData.title}</h2>
+                        <div style="font-size:13px; color:#888; margin-top:5px; font-style:italic;">"${dayData.briefing}"</div>
+                    </div>
+                `;
+
+                html += `<div style="display:flex; flex-direction:column; gap:10px; margin-bottom:30px;">`;
+
+                dayData.tasks.forEach((t, i) => {
+                    const isDone = data.questsCompleted.includes(i);
+                    const title = t.title || t;
+                    const desc = t.desc || "";
+
+                    html += `
+                        <div onclick="Marathon.toggleQuest(${i})" style="
+                            background:rgba(255,255,255,0.03); 
+                            border:1px solid ${isDone ? '#FF3B30' : 'rgba(255,255,255,0.1)'}; 
+                            border-radius:12px; padding:15px; position:relative; overflow:hidden; transition:all 0.2s;">
+                            
+                            <div style="display:flex; gap:15px; align-items:start;">
+                                <div style="width:24px; height:24px; min-width:24px; border-radius:6px; border:2px solid ${isDone ? '#FF3B30' : '#444'}; background:${isDone ? '#FF3B30' : 'transparent'}; display:flex; align-items:center; justify-content:center; margin-top:2px;">
+                                    ${isDone ? '<i class="fa-solid fa-check" style="color:#fff; font-size:12px;"></i>' : ''}
+                                </div>
+                                <div>
+                                    <div style="font-weight:600; color:${isDone ? '#FF3B30' : '#fff'}; margin-bottom:4px;">${title}</div>
+                                    <div style="font-size:12px; color:#888;">${desc}</div>
+                                </div>
+                            </div>
+                        </div>
+                     `;
+                });
+
+                html += `</div>`;
+
+                // Complete Button
+                const allDone = data.questsCompleted.length === dayData.tasks.length;
+
+                html += `
+                    <button onclick="Marathon.completeDay()" class="primary-btn" style="
+                        background:${allDone ? '#fff' : 'rgba(255,255,255,0.1)'}; 
+                        color:${allDone ? '#000' : '#666'}; 
+                        pointer-events:${allDone ? 'all' : 'none'};
+                        font-weight:800;">
+                        ЗАВЕРШИТЬ ДЕНЬ ${allDone ? '🚀' : ''}
+                    </button>
+                `;
+
+                container.innerHTML = html;
+            },
+
+            startProtocol: function () {
+                if (confirm("Начать 7-дневный протокол?")) {
+                    DB.data.marathon.started = true;
+                    DB.data.marathon.day = 0;
+                    DB.data.marathon.unlocked = true;
+
+                    // Add Permanent Habits
+                    const habits = [
+                        { text: "☀️ Ранний подъём", completed: false },
+                        { text: "📚 Чтение (30 страниц)", completed: false },
+                        { text: "💪 Зарядка", completed: false },
+                        { text: "🚿 Холодный душ", completed: false }
+                    ];
+
+                    if (!DB.data.habits) DB.data.habits = [];
+
+                    habits.forEach(h => {
+                        if (!DB.data.habits.some(ex => ex.text === h.text)) {
+                            DB.data.habits.unshift(h);
+                        }
+                    });
+
+                    DB.save();
+                    this.render();
+                    alert("Протокол запущен. Ритуалы добавлены.");
+                }
+            },
+
+            finishDay0: function () {
+                DB.data.marathon.day = 1;
+                DB.data.marathon.unlocked = false;
+                DB.data.marathon.lastCompletedDate = new Date().toDateString(); // Lock until tomorrow
+                DB.save();
+                this.render();
+            },
+
+            unlockDay: function () {
+                const today = new Date().toDateString();
+                const last = DB.data.marathon.lastCompletedDate;
+
+                if (last === today) {
+                    // Fancy Alert
+                    alert("⏳ ВОССТАНОВЛЕНИЕ...\n\nСледующий этап откроется завтра. MVP нужен отдых.");
+                    return;
+                }
+
+                DB.data.marathon.unlocked = true;
+                DB.save();
+                this.render();
+            },
+
+            toggleQuest: function (i) {
+                const list = DB.data.marathon.questsCompleted;
+                if (list.includes(i)) list.splice(list.indexOf(i), 1);
+                else list.push(i);
+                DB.save();
+                this.render();
+            },
+
+            completeDay: function () {
+                if (DB.data.marathon.day >= 7) {
+                    alert("ПОЗДРАВЛЯЮ! ТЫ ПРОШЕЛ МАРАФОН!");
+                    this.renderEndScreen();
+                    return;
+                }
+
+                // alert(`День ${DB.data.marathon.day} завершен! Возвращайся завтра.`);
+                DB.data.marathon.day++;
+                DB.data.marathon.unlocked = false;
+                DB.data.marathon.questsCompleted = [];
+                DB.data.marathon.lastCompletedDate = new Date().toDateString(); // Lock until tomorrow
+
+                DB.save();
+                this.render();
+
+                setTimeout(() => alert("День завершен. Доступ к следующему этапу откроется завтра."), 100);
+            },
+
+            reset: function () {
+                if (confirm("Сбросить весь прогресс?")) {
+                    DB.data.marathon = null;
+                    DB.data.marathonProtocol = null;
+                    DB.save();
+                    location.reload();
+                }
+            }
+        };
+
+        // Check on load
+        window.onload = function () {
+            App.init();
+
+            // Late Check for Modules
+            setTimeout(() => {
+                if (typeof Strategy !== 'undefined') Strategy.init();
+                if (typeof Marathon !== 'undefined') Marathon.init();
+            }, 500);
+        };
+
+    </script>
+
+    <!-- REST TIMER OVERLAY -->
+    <div id="rest-overlay"></div>
+    <!-- SAFETY NET: Auto-Restore Check -->
+    <script>
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const stepFocus = document.getElementById('strat-step-focus');
+                const hasBackup = localStorage.getItem('titan_strategy_backup');
+
+                // If we are on the "Start" screen BUT we have a backup -> Something went wrong.
+                // Force show the restore button.
+                if (stepFocus && stepFocus.style.display !== 'none' && hasBackup && hasBackup.length > 50) {
+                    console.warn("⚠️ Safety Net: Backup found but not loaded. Injecting button.");
+
+                    if (!document.getElementById('titan-restore-btn')) {
+                        const div = document.createElement('div');
+                        div.id = 'titan-restore-btn';
+                        div.style.marginTop = '20px';
+                        div.style.textAlign = 'center';
+                        div.innerHTML = `
+                            <div style="background: rgba(175, 82, 222, 0.15); border: 1px solid rgba(175, 82, 222, 0.3); border-radius: 16px; padding: 20px; display:flex; flex-direction:column; align-items:center; gap:12px; backdrop-filter: blur(10px);">
+                                <div style="color: #AF52DE; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">
+                                    <i class="fa-solid fa-floppy-disk" style="margin-right: 6px;"></i> СОХРАНЕННЫЙ ПЛАН
+                                </div>
+                                <button onclick="Strategy.forceRestore()" style="
+                                    background: #AF52DE; color: #fff; font-weight: 700; border: none; padding: 12px 24px; border-radius: 12px; cursor: pointer; width: 100%; font-size: 14px; box-shadow: 0 4px 15px rgba(175, 82, 222, 0.4); transition: transform 0.2s;
+                                " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                                    ВОССТАНОВИТЬ
+                                </button>
+                            </div>
+                         `;
+                        stepFocus.querySelector('.form-group') ? stepFocus.querySelector('.form-group').appendChild(div) : stepFocus.appendChild(div);
+                    }
+                }
+            }, 2000); // Check 2 seconds after load
+        });
+    </script>
+</body>
+
+</html>

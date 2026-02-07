@@ -1,0 +1,5 @@
+mvp.db
+__pycache__/
+*.pyc
+.env
+meditations/*.mp3

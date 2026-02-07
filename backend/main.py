@@ -28,7 +28,12 @@ app = FastAPI(title="MVP OS Backend")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "*", 
+        "https://kopejkinmatvej778-lang.github.io",
+        "https://mvpbot-matf1.amvera.io"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -118,16 +123,26 @@ def generate_strategy_endpoint(req: StrategyRequest):
 
     system_prompt = "Ты — Titan AI, элитный стратег. Формат ответа: ТОЛЬКО JSON."
     user_prompt = f"""
-    Цель: {req.focus}
-    Ответы: {", ".join(req.answers)}
+    Твоя задача: Создать подробный план действий на 7 ДНЕЙ для достижения цели.
+    Цель пользователя: {req.focus}
+    Контекст (ответы пользователя): {", ".join(req.answers)}
     
-    Создай JSON:
+    Требования:
+    1. План должен быть на 7 дней.
+    2. Каждый день должен содержать 3-5 конкретных задач.
+    3. Задачи должны быть actionable (начать с глагола).
+    
+    Верни ТОЛЬКО валидный JSON (без Markdown):
     {{
         "status": "success",
         "data": {{
             "focus": "{req.focus}",
             "stats": {{ "complexity": 50, "time_required": 50, "sustainability": 50, "impact": 50 }},
-            "days": [ {{ "day": 1, "title": "...", "tasks": ["..."] }} ]
+            "days": [ 
+                {{ "day": 1, "title": "День 1: ...", "tasks": ["..."] }},
+                {{ "day": 2, "title": "День 2: ...", "tasks": ["..."] }},
+                ... (и так до 7 дней)
+            ]
         }}
     }}
     """
@@ -167,4 +182,4 @@ else:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run(app, host="0.0.0.0", port=80)

@@ -2504,8 +2504,8 @@
 
                 // Render Missions
                 const mList = document.getElementById('missions-list');
-                // Filter out completed missions
-                const activeMissions = DB.data.missions.filter(m => !m.completed);
+                // Show ALL missions, even completed ones (sorted: active first)
+                const activeMissions = DB.data.missions.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
                 mList.innerHTML = activeMissions.length ? activeMissions.map(t => this.createTaskHtml(t, 'missions')).join('') : '<div style="text-align:center; color:#555; padding:20px;">Нет активных квестов</div>';
 
                 // Render Rings
@@ -2581,67 +2581,91 @@
                 </div>`;
             },
             addTask(listType) {
+                // Fix: map 'rituals' request to 'habits' storage if needed, or keep consistent
+                // Let's use 'habits' as the key for rituals in DB
+                let targetKey = listType;
+                if (listType === 'rituals') targetKey = 'habits';
+
                 let txt = prompt("Новая задача:", "");
                 if (txt && txt.trim().length > 0) {
                     txt = txt.trim();
-                    // Capitalize first letter
                     txt = txt.charAt(0).toUpperCase() + txt.slice(1);
 
                     const newItem = { id: Date.now(), text: txt, completed: false, isAi: false };
-                    if (!DB.data[listType]) DB.data[listType] = [];
-                    DB.data[listType].push(newItem);
+
+                    if (!DB.data[targetKey]) DB.data[targetKey] = [];
+                    DB.data[targetKey].push(newItem);
                     DB.save();
                 }
             },
             deleteTask(id, listType) {
                 if (confirm("Удалить задачу?")) {
-                    DB.data[listType] = DB.data[listType].filter(x => x.id !== id);
+                    let targetKey = listType === 'rituals' ? 'habits' : listType;
+                    DB.data[targetKey] = DB.data[targetKey].filter(x => x.id !== id);
+
+                    // Also check missions just in case
+                    if (targetKey === 'missions') {
+                        DB.data.missions = DB.data.missions.filter(x => x.id !== id);
+                    }
                     DB.save();
                 }
             },
-            toggleTask(id, list) {
-                // Handle String IDs (convert numeric strings back to numbers if needed, but setup_profile is string)
-                // Actually, logic is fine with string vs string comparison.
+            toggleTask(id, listType) {
+                // 1. Find the DOM element to animate
+                // We need to pass 'event' or find by ID. Since we don't have event here easily, let's find by ID if possible.
+                // In render we didn't set ID on div, only on logic.
 
-                const item = DB.data[list].find(x => x.id == id); // Loose equality for number/string mix
+                // Let's rely on logic for now, but add delay for re-render if it's a mission (which disappears).
+
+                let targetKey = listType === 'rituals' ? 'habits' : listType;
+
+                // Compatibility: Search in rituals if not found in habits
+                let list = DB.data[targetKey];
+                if (!list && targetKey === 'habits') list = DB.data.rituals;
+
+                if (!list) return;
+
+                const item = list.find(x => x.id == id);
                 if (item) {
-                    // Smart Redirects (Starter Missions) - Mark complete & Redirect
-                    if (item.id === 'mission_bio') {
-                        item.completed = true; DB.save();
-                        Modals.openBioSettings(); return;
-                    }
-                    if (item.id === 'mission_strategy') {
-                        item.completed = true; DB.save();
-                        UI.switchTab('strategy'); return;
-                    }
-                    if (item.id === 'mission_marathon') {
-                        item.completed = true; DB.save();
-                        UI.switchTab('marathon'); return;
-                    }
+                    // Smart Actions
+                    if (item.id === 'mission_bio') { Modals.openBioSettings(); return; }
+                    if (item.id === 'mission_strategy') { UI.switchTab('strategy'); return; }
+                    if (item.id === 'mission_marathon') { UI.switchTab('marathon'); return; }
 
-                    if (item.id === 'setup_profile') { Modals.openBioSettings(); return; }
+                    // Toggle status
+                    const isCompleting = !item.completed;
+                    item.completed = isCompleting;
 
-                    if (item.isAi && !item.completed) {
-                        const txt = (item.text || "").toLowerCase();
-                        if (txt.includes('спорт') || txt.includes('зал')) { if (confirm("Открыть тренировки?")) UI.switchTab('home'); }
+                    // Haptic
+                    if (window.Telegram?.WebApp?.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.impactOccurred(isCompleting ? 'heavy' : 'light');
                     }
 
-                    item.completed = !item.completed;
-
-                    // Gamification Logic
+                    // Gamification
                     const today = new Date().toISOString().split('T')[0];
                     if (!DB.data.history) DB.data.history = {};
                     if (!DB.data.history[today]) DB.data.history[today] = 0;
 
-                    if (item.completed) {
-                        App.addXp(50);
+                    if (isCompleting) {
+                        this.addXp(50);
                         DB.data.history[today]++;
+                        // Confetti Effect if completing
+                        if (window.confetti) window.confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
                     } else {
-                        App.addXp(-50);
+                        this.addXp(-50);
                         DB.data.history[today]--;
                     }
 
-                    DB.save();
+                    // Delay Saving/Rendering for Missions so user sees the checkmark
+                    if (targetKey === 'missions' && isCompleting) {
+                        // Force update UI locally first? No, just wait.
+                        // We can force a quick temp update if we had reference to DOM.
+                        setTimeout(() => {
+                            DB.save();
+                        }, 500);
+                    } else {
+                        DB.save();
+                    }
                 }
             },
             addXp(amount) {

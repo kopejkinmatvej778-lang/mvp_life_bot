@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MVP Life OS [V2.2 UPDATED]</title>
+    <title>MVP Life OS [V2.3: NO ALERTS]</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // GLOBAL CONFIG: Point to Amvera Backend
@@ -14,6 +14,52 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* SWIPE TO DELETE STYLES */
+        .task-swipe-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE 10+ */
+            border-radius: 12px;
+            margin-bottom: 8px;
+            background: var(--bg-card);
+        }
+
+        .task-swipe-container::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari */
+        }
+
+        .task-main {
+            min-width: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            background: var(--bg-card);
+            /* Ensure covering */
+            transition: background 0.2s;
+        }
+
+        .task-main:active {
+            background: var(--bg-card-hover);
+        }
+
+        .task-delete-btn {
+            min-width: 70px;
+            scroll-snap-align: end;
+            background: var(--danger);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
         /* =========================================
            1. CORE VARIABLES & RESET
            ========================================= */
@@ -34,6 +80,17 @@
             --radius-s: 12px;
             --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
             --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* LIGHT THEME OVERRIDE */
+        [data-theme='light'] {
+            --bg-body: #F2F2F7;
+            --bg-card: #FFFFFF;
+            --bg-card-hover: #E5E5EA;
+            --text-main: #000000;
+            --text-secondary: #8E8E93;
+            --border-color: #D1D1D6;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
         }
 
         * {
@@ -1516,22 +1573,23 @@
     <div class="menu-overlay" id="menu-overlay" onclick="UI.toggleMenu()"></div>
     <div class="side-menu" id="side-menu">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px;">
-            <h2 class="text-gradient" style="font-size:32px; font-weight:800;">Меню</h2>
+            <h2 class="text-gradient" style="font-size:32px; font-weight:800;" data-i18n="menu_title">Меню</h2>
             <button onclick="UI.toggleMenu()"
                 style="background:none; border:none; color:#fff; font-size:24px;">&times;</button>
         </div>
         <div class="menu-item" onclick="UI.switchTab('marathon'); UI.toggleMenu();"><i class="fa-solid fa-trophy"
-                style="color:#FFD60A"></i> Марафон</div>
+                style="color:#FFD60A"></i> <span data-i18n="menu_marathon">Марафон</span></div>
         <div class="menu-item" onclick="UI.switchTab('strategy'); UI.toggleMenu();"><i class="fa-solid fa-map"
-                style="color:#AF52DE"></i> Моя Стратегия</div>
+                style="color:#AF52DE"></i> <span data-i18n="menu_strategy">Моя Стратегия</span></div>
         <div class="menu-item" onclick="UI.navTo('gym')"><i class="fa-solid fa-dumbbell"
-                style="color:var(--primary)"></i> Тренировки</div>
+                style="color:var(--primary)"></i> <span data-i18n="menu_gym">Тренировки</span></div>
     </div>
 
     <!-- TAB 1: DASHBOARD -->
     <div id="tab-home" class="tab-content active">
         <!-- Rings -->
-        <h3 class="section-label" style="text-align:center; margin-bottom:20px;">БАЛАНС СИСТЕМЫ</h3>
+        <h3 class="section-label" style="text-align:center; margin-bottom:20px;" data-i18n="home_balance">БАЛАНС СИСТЕМЫ
+        </h3>
         <div class="rings-container" onclick="UI.switchTab('gym')" style="cursor:pointer">
             <!-- BODY -->
             <div style="text-align:center;">
@@ -1544,7 +1602,8 @@
                     <i class="fa-solid fa-dumbbell"
                         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 20px;"></i>
                 </div>
-                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;">ТЕЛО</div>
+                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;"
+                    data-i18n="ring_body">ТЕЛО</div>
             </div>
 
             <!-- MIND -->
@@ -1558,7 +1617,8 @@
                     <i class="fa-solid fa-brain"
                         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 20px;"></i>
                 </div>
-                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;">РАЗУМ</div>
+                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;"
+                    data-i18n="ring_mind">РАЗУМ</div>
             </div>
 
             <!-- FLOW -->
@@ -1572,14 +1632,15 @@
                     <i class="fa-solid fa-bolt"
                         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 20px;"></i>
                 </div>
-                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;">ДУХ</div>
+                <div class="ring-label" style="margin-top:8px; font-size:12px; font-weight:700; color:#888;"
+                    data-i18n="ring_flow">ДУХ</div>
             </div>
         </div>
 
         <!-- Rituals -->
         <div style="padding: 0 12px; margin-top: 30px;">
             <div class="section-header-row">
-                <span class="section-label">ПРИВЫЧКИ</span>
+                <span class="section-label" data-i18n="home_habits">ПРИВЫЧКИ</span>
                 <i class="fa-solid fa-plus" onclick="App.addTask('rituals')"
                     style="color:var(--primary); cursor:pointer; padding:5px;"></i>
             </div>
@@ -1589,7 +1650,7 @@
         <!-- Missions -->
         <div style="padding: 0 12px; margin-top: 30px;">
             <div class="section-header-row">
-                <span class="section-label">ЗАДАЧИ СЕГОДНЯ</span>
+                <span class="section-label" data-i18n="home_missions">ЗАДАЧИ СЕГОДНЯ</span>
                 <i class="fa-solid fa-plus" onclick="App.addTask('missions')"
                     style="color:var(--primary); cursor:pointer; padding:5px;"></i>
             </div>
@@ -1599,7 +1660,7 @@
 
     <!-- TAB 2: FOOD -->
     <div id="tab-food" class="tab-content">
-        <h3 class="section-label" style="text-align:center; margin-bottom:20px;">ПИТАНИЕ</h3>
+        <h3 class="section-label" style="text-align:center; margin-bottom:20px;" data-i18n="food_title">ПИТАНИЕ</h3>
 
         <div class="calorie-card" onclick="Modals.openCalorieEdit()">
             <div class="cal-big" id="cal-val">0</div>
@@ -1625,7 +1686,7 @@
         </div>
 
         <div class="camera-trigger" onclick="Modals.openManualFood()">
-            <i class="fa-solid fa-plus"></i> Добавить еду
+            <i class="fa-solid fa-plus"></i> <span data-i18n="food_add">Добавить еду</span>
         </div>
     </div>
 
@@ -1657,18 +1718,19 @@
 
         <div class="stats-block">
             <div class="section-header-row">
-                <span class="section-label">БИОМЕТРИЯ</span>
+                <span class="section-label" data-i18n="profile_bio">БИОМЕТРИЯ</span>
                 <button onclick="Modals.openBioSettings()"
-                    style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700;">ИЗМЕНИТЬ</button>
+                    style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700;"
+                    data-i18n="profile_edit">ИЗМЕНИТЬ</button>
             </div>
             <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #333;">
-                <span>Вес</span><b id="bio-weight">-</b>
+                <span data-i18n="bio_weight">Вес</span><b id="bio-weight">-</b>
             </div>
             <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #333;">
-                <span>Рост</span><b id="bio-height">-</b>
+                <span data-i18n="bio_height">Рост</span><b id="bio-height">-</b>
             </div>
             <div style="display:flex; justify-content:space-between; padding:12px 0;">
-                <span>Цель TDEE</span><b id="bio-tdee" style="color:var(--primary)">-</b>
+                <span data-i18n="bio_tdee">Цель TDEE</span><b id="bio-tdee" style="color:var(--primary)">-</b>
             </div>
         </div>
     </div>
@@ -1680,7 +1742,7 @@
         <!-- Header with back button -->
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
             <button class="nav-btn-back" onclick="UI.switchTab('home')"><i class="fa-solid fa-arrow-left"></i></button>
-            <h2 style="margin:0; font-size:22px; font-weight:700;">ТРЕНИРОВКИ</h2>
+            <h2 style="margin:0; font-size:22px; font-weight:700;" data-i18n="menu_gym">ТРЕНИРОВКИ</h2>
         </div>
 
         <!-- Programs List -->
@@ -1718,30 +1780,7 @@
         </div>
     </div>
 
-    <!-- TAB: SETTINGS -->
-    <!-- TAB: SETTINGS -->
-    <div id="tab-settings" class="tab-content">
-        <h2 style="padding:20px;">Настройки</h2>
-        <div class="stats-block">
-            <div style="padding:15px 0; border-bottom:1px solid #333;">Уведомления</div>
-            <div style="padding:15px 0; border-bottom:1px solid #333;">Приватность</div>
 
-            <div style="padding:15px 0; color:var(--primary); font-weight:700; cursor:pointer;"
-                onclick="window.Gym.startDemoMode()">
-                <i class="fa-solid fa-play"></i> Start Demo (35s)
-            </div>
-
-            <div style="padding:15px 0; color:#FF9F0A; font-weight:700; cursor:pointer;"
-                onclick="App.restartOnboarding()">
-                <i class="fa-solid fa-rotate"></i> Пройти Онбординг заново
-            </div>
-        </div>
-
-        <div style="padding:15px 0; color:var(--danger); cursor:pointer;" onclick="App.resetDemo()">
-            <i class="fa-solid fa-trash"></i> Удалить все данные (Reset)
-        </div>
-    </div>
-    </div>
 
     <!-- TAB: STRATEGY (AI COACH) -->
     <div id="tab-strategy" class="tab-content">
@@ -2003,6 +2042,57 @@
         </div>
     </div>
 
+    <!-- TAB SETTINGS -->
+    <div id="tab-settings" class="tab-content" style="padding: 20px; padding-bottom: 120px;">
+        <h2 style="margin-bottom: 30px; font-weight: 800; letter-spacing: -0.5px;" data-i18n="settings_title">НАСТРОЙКИ
+        </h2>
+
+        <!-- Theme -->
+        <div
+            style="background: var(--bg-card); padding: 15px; border-radius: 16px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 600; display:flex; align-items:center; gap:10px;">
+                <div
+                    style="width:30px; height:30px; background:rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-palette" style="color:#AF52DE;"></i>
+                </div>
+                <span data-i18n="settings_theme">Тема</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 4px; border-radius: 99px; display: flex;">
+                <button onclick="App.setTheme('dark')" id="theme-btn-dark"
+                    style="background: #333; border: none; padding: 6px 14px; border-radius: 99px; color: #fff; transition: 0.3s;">🌙</button>
+                <button onclick="App.setTheme('light')" id="theme-btn-light"
+                    style="background: transparent; border: none; padding: 6px 14px; border-radius: 99px; color: #888; transition: 0.3s;">☀️</button>
+            </div>
+        </div>
+
+        <!-- Language -->
+        <div
+            style="background: var(--bg-card); padding: 15px; border-radius: 16px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="font-weight: 600; display:flex; align-items:center; gap:10px;">
+                <div
+                    style="width:30px; height:30px; background:rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-globe" style="color:#30D158;"></i>
+                </div>
+                <span data-i18n="settings_lang">Язык</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 4px; border-radius: 99px; display: flex;">
+                <button onclick="App.setLang('ru')" id="lang-btn-ru"
+                    style="background: #333; border: none; padding: 6px 14px; border-radius: 99px; color: #fff; font-weight: 700; font-size: 12px; transition: 0.3s;">RU</button>
+                <button onclick="App.setLang('en')" id="lang-btn-en"
+                    style="background: transparent; border: none; padding: 6px 14px; border-radius: 99px; color: #888; font-weight: 700; font-size: 12px; transition: 0.3s;">EN</button>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <a href="https://t.me/monet0chkaq" target="_blank" style="text-decoration: none; display:block;">
+            <div style="background: linear-gradient(135deg, #0088cc 0%, #00aaff 100%); padding: 25px; border-radius: 24px; text-align: center; color: #fff; font-weight: 800; box-shadow: 0 10px 40px rgba(0, 136, 204, 0.3); transition: transform 0.2s;"
+                ontouchstart="this.style.transform='scale(0.96)'" ontouchend="this.style.transform='scale(1)'">
+                <i class="fa-brands fa-telegram" style="font-size: 32px; margin-bottom: 12px;"></i>
+                <div style="font-size: 18px;" data-i18n="settings_support">Написать в поддержку</div>
+            </div>
+        </a>
+    </div>
+
     <!-- Bio Settings -->
     <div id="modal-bio" class="modal-overlay">
         <div class="modal-card">
@@ -2076,6 +2166,56 @@
         // SERVER CONFIGURATION - Change this to your AMVERA URL later (e.g. "https://my-project.amvera.io")
         // SERVER CONFIGURATION - Automatic detection
         // SERVER CONFIGURATION - Automatic detection
+
+        // --- 0. LOCALIZATION ---
+        const Translations = {
+            ru: {
+                menu_title: "Меню",
+                menu_marathon: "Марафон",
+                menu_strategy: "Моя Стратегия",
+                menu_gym: "Тренировки",
+                home_balance: "БАЛАНС СИСТЕМЫ",
+                ring_body: "ТЕЛО",
+                ring_mind: "РАЗУМ",
+                ring_flow: "ДУХ",
+                home_habits: "ПРИВЫЧКИ",
+                home_missions: "ЗАДАЧИ СЕГОДНЯ",
+                food_title: "ПИТАНИЕ",
+                food_add: "Добавить еду",
+                profile_bio: "БИОМЕТРИЯ",
+                profile_edit: "ИЗМЕНИТЬ",
+                bio_weight: "Вес",
+                bio_height: "Рост",
+                bio_tdee: "Цель TDEE",
+                settings_title: "НАСТРОЙКИ",
+                settings_theme: "Тема",
+                settings_lang: "Язык",
+                settings_support: "Написать в поддержку"
+            },
+            en: {
+                menu_title: "Menu",
+                menu_marathon: "MVP Protocol",
+                menu_strategy: "My Strategy",
+                menu_gym: "Workouts",
+                home_balance: "SYSTEM BALANCE",
+                ring_body: "BODY",
+                ring_mind: "MIND",
+                ring_flow: "SPIRIT",
+                home_habits: "HABITS",
+                home_missions: "TODAY'S MISSIONS",
+                food_title: "NUTRITION",
+                food_add: "Add Food",
+                profile_bio: "BIOMETRICS",
+                profile_edit: "EDIT",
+                bio_weight: "Weight",
+                bio_height: "Height",
+                bio_tdee: "TDEE Goal",
+                settings_title: "SETTINGS",
+                settings_theme: "Theme",
+                settings_lang: "Language",
+                settings_support: "Contact Support"
+            }
+        };
 
         const DB = {
             data: {
@@ -2335,6 +2475,7 @@
         const App = {
             init() {
                 DB.init();
+                this.loadSettings();
 
                 // Check onboarding
                 const onbView = document.getElementById('view-onboarding');
@@ -2504,8 +2645,14 @@
 
                 // Render Missions
                 const mList = document.getElementById('missions-list');
-                // Show ALL missions, even completed ones (sorted: active first)
-                const activeMissions = DB.data.missions.sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
+
+                // Show ALL missions, even completed ones, BUT hide 'isStarter' missions if completed
+                const activeMissions = DB.data.missions.filter(m => {
+                    // Hide completed starter missions immediately
+                    if (m.isStarter && m.completed) return false;
+                    return true;
+                }).sort((a, b) => (a.completed === b.completed) ? 0 : a.completed ? 1 : -1);
+
                 mList.innerHTML = activeMissions.length ? activeMissions.map(t => this.createTaskHtml(t, 'missions')).join('') : '<div style="text-align:center; color:#555; padding:20px;">Нет активных квестов</div>';
 
                 // Render Rings
@@ -2572,11 +2719,24 @@
             },
             createTaskHtml(t, listType) {
                 const isAi = t.isAi;
+                const isCompleted = t.completed;
+
+                // Swipe-to-delete structure
+                // We use scroll-snap to create the swipe effect
                 return `
-                <div class="task-item ${t.completed ? 'completed' : ''} ${isAi ? 'ai-task' : ''}" onclick="App.toggleTask('${t.id}', '${listType}')" oncontextmenu="App.deleteTask('${t.id}', '${listType}'); return false;">
-                    <div class="checkbox">${t.completed ? '✓' : ''}</div>
-                    <div class="task-content">
-                        <div style="font-weight:600; font-size:15px;">${t.text || t.title || 'Mission'}</div>
+                <div class="task-swipe-container">
+                    <div class="task-main ${isCompleted ? 'completed' : ''} ${isAi ? 'ai-task' : ''}" 
+                        onclick="App.toggleTask('${t.id}', '${listType}')">
+                        
+                        <div class="checkbox" style="margin-right: 12px; width: 24px; height: 24px; border: 2px solid #555; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 800; font-size: 14px; background: ${isCompleted ? 'rgba(255,255,255,0.1)' : 'transparent'}; border-color: ${isCompleted ? 'var(--primary)' : '#555'}; transition: all 0.2s;">${isCompleted ? '✓' : ''}</div>
+                        
+                        <div class="task-content" style="flex: 1;">
+                            <div style="font-weight:600; font-size:15px; transition: all 0.2s; ${isCompleted ? 'text-decoration: line-through; opacity: 0.5; color: #888;' : ''}">${t.text || t.title || 'Mission'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-delete-btn" onclick="if(confirm('Удалить?')) App.deleteTask('${t.id}', '${listType}')">
+                        <i class="fa-solid fa-trash"></i>
                     </div>
                 </div>`;
             },
@@ -2599,16 +2759,19 @@
                 }
             },
             deleteTask(id, listType) {
-                if (confirm("Удалить задачу?")) {
-                    let targetKey = listType === 'rituals' ? 'habits' : listType;
-                    DB.data[targetKey] = DB.data[targetKey].filter(x => x.id !== id);
+                // Confirmation is handled in the UI (onclick)
+                let targetKey = listType === 'rituals' ? 'habits' : listType;
 
-                    // Also check missions just in case
-                    if (targetKey === 'missions') {
-                        DB.data.missions = DB.data.missions.filter(x => x.id !== id);
-                    }
-                    DB.save();
+                // Use != for loose equality (string vs number)
+                if (DB.data[targetKey]) {
+                    DB.data[targetKey] = DB.data[targetKey].filter(x => x.id != id);
                 }
+
+                // Also check missions just in case
+                if (targetKey === 'missions' && DB.data.missions) {
+                    DB.data.missions = DB.data.missions.filter(x => x.id != id);
+                }
+                DB.save();
             },
             toggleTask(id, listType) {
                 // 1. Find the DOM element to animate
@@ -2752,9 +2915,10 @@
             handleFile(input) {
                 if (input.files && input.files[0]) {
                     const file = input.files[0];
-                    // UI Feedback
-                    const originalText = document.title;
-                    alert("🤖 Анализирую фото... (5-10 сек)");
+
+                    // SHOW LOADER
+                    const loader = document.getElementById('ai-loader');
+                    if (loader) loader.style.display = 'flex';
 
                     const formData = new FormData();
                     formData.append('photo', file);
@@ -2780,11 +2944,13 @@
                             const fat = parseInt(result.fat) || 0;
                             const carbs = parseInt(result.carbs) || 0;
 
-                            if (calories > 0) {
+                            if (calories > 0 || (result.calories && result.calories > 0)) {
+                                const finalCal = calories || result.calories;
+
                                 // Init macros if missing
                                 if (!DB.data.macros) DB.data.macros = { protein: 0, fat: 0, carbs: 0 };
 
-                                DB.data.calories.current += calories;
+                                DB.data.calories.current += finalCal;
                                 DB.data.macros.protein += protein;
                                 DB.data.macros.fat += fat;
                                 DB.data.macros.carbs += carbs;
@@ -2794,16 +2960,17 @@
                                 // Refresh UI
                                 try { App.render(); } catch (e) { App.updateRings(); }
 
-                                alert(`✅ ${name}\n+${calories} ккал\n(Б: ${protein}, Ж: ${fat}, У: ${carbs})`);
+                                this.showToast(`+${finalCal} ккал: ${name}`);
                             } else {
-                                alert("❌ AI не нашел еду на фото. Попробуй четче.");
+                                this.showToast("AI не нашел еду на фото", 'error');
                             }
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            alert("❌ Ошибка связи с AI (n8n).");
+                            this.showToast("Ошибка связи с AI", 'error');
                         })
                         .finally(() => {
+                            if (loader) loader.style.display = 'none';
                             input.value = ''; // Reset input
                         });
                 }
@@ -2841,18 +3008,132 @@
                 DB.save();
                 Modals.closeAll();
             },
+            setTheme_OLD(t) {
+                document.documentElement.setAttribute('data-theme', t);
+                const btnD = document.getElementById('theme-btn-dark');
+                const btnL = document.getElementById('theme-btn-light');
+
+                if (t === 'dark') {
+                    if (btnD) { btnD.style.background = '#333'; btnD.style.color = '#fff'; }
+                    if (btnL) { btnL.style.background = 'transparent'; btnL.style.color = '#888'; }
+                    if (window.Telegram?.WebApp) {
+                        window.Telegram.WebApp.setBackgroundColor('#000000');
+                        window.Telegram.WebApp.setHeaderColor('#000000');
+                    }
+                } else {
+                    if (btnD) { btnD.style.background = 'transparent'; btnD.style.color = '#888'; }
+                    if (btnL) { btnL.style.background = '#fff'; btnL.style.color = '#000'; }
+                    if (window.Telegram?.WebApp) {
+                        window.Telegram.WebApp.setBackgroundColor('#F2F2F7');
+                        window.Telegram.WebApp.setHeaderColor('#F2F2F7');
+                    }
+                }
+            },
+
+            setLang_OLD(l) {
+                const btnR = document.getElementById('lang-btn-ru');
+                const btnE = document.getElementById('lang-btn-en');
+
+                if (l === 'ru') {
+                    if (btnR) { btnR.style.background = '#333'; btnR.style.color = '#fff'; }
+                    if (btnE) { btnE.style.background = 'transparent'; btnE.style.color = '#888'; }
+                } else {
+                    if (btnR) { btnR.style.background = 'transparent'; btnR.style.color = '#888'; }
+                    if (btnE) { btnE.style.background = '#333'; btnE.style.color = '#fff'; }
+                }
+
+                if (l === 'en') this.showToast("English selected (Beta)", 'success');
+                else this.showToast("Выбран Русский язык", 'success');
+            },
+
+            loadSettings() {
+                const t = localStorage.getItem('mvp_theme') || 'dark';
+                this.setTheme(t);
+                const l = localStorage.getItem('mvp_lang') || 'ru';
+                this.setLang(l, false);
+            },
+            setTheme(t) {
+                document.documentElement.setAttribute('data-theme', t);
+                localStorage.setItem('mvp_theme', t);
+                const btnD = document.getElementById('theme-btn-dark');
+                const btnL = document.getElementById('theme-btn-light');
+                if (t === 'dark') {
+                    if (btnD) { btnD.style.background = '#333'; btnD.style.color = '#fff'; }
+                    if (btnL) { btnL.style.background = 'transparent'; btnL.style.color = '#666'; }
+                    if (window.Telegram?.WebApp) {
+                        window.Telegram.WebApp.setBackgroundColor('#000000');
+                        window.Telegram.WebApp.setHeaderColor('#000000');
+                    }
+                } else {
+                    if (btnD) { btnD.style.background = 'transparent'; btnD.style.color = '#8E8E93'; }
+                    if (btnL) { btnL.style.background = '#E5E5EA'; btnL.style.color = '#000'; }
+                    if (window.Telegram?.WebApp) {
+                        window.Telegram.WebApp.setBackgroundColor('#F2F2F7');
+                        window.Telegram.WebApp.setHeaderColor('#F2F2F7');
+                    }
+                }
+            },
+            setLang(l, toast = true) {
+                localStorage.setItem('mvp_lang', l);
+                const btnR = document.getElementById('lang-btn-ru');
+                const btnE = document.getElementById('lang-btn-en');
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                const activeBg = isLight ? '#E5E5EA' : '#333';
+                const activeCol = isLight ? '#000' : '#fff';
+                const inactiveCol = '#888';
+                if (l === 'ru') {
+                    if (btnR) { btnR.style.background = activeBg; btnR.style.color = activeCol; }
+                    if (btnE) { btnE.style.background = 'transparent'; btnE.style.color = inactiveCol; }
+                } else {
+                    if (btnR) { btnR.style.background = 'transparent'; btnR.style.color = inactiveCol; }
+                    if (btnE) { btnE.style.background = activeBg; btnE.style.color = activeCol; }
+                }
+                // Apply Translations
+                const t = Translations[l];
+                if (t) {
+                    document.querySelectorAll('[data-i18n]').forEach(el => {
+                        const key = el.dataset.i18n;
+                        if (t[key]) el.innerText = t[key];
+                    });
+                }
+
+                if (toast) {
+                    if (l === 'en') this.showToast("English selected", 'success');
+                    else this.showToast("Выбран Русский язык", 'success');
+                }
+            },
+
+            showToast(msg, type = 'success') {
+                const t = document.getElementById('toast-notification');
+                if (!t) return alert(msg);
+
+                const txt = document.getElementById('toast-text');
+                const icon = t.querySelector('i');
+
+                txt.innerText = msg;
+                if (type === 'error') {
+                    if (icon) icon.className = 'fa-solid fa-circle-xmark';
+                    if (icon) icon.style.color = '#FF3B30';
+                } else {
+                    if (icon) icon.className = 'fa-solid fa-circle-check';
+                    if (icon) icon.style.color = '#30D158';
+                }
+
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 3000);
+            },
             analyzeFoodAI() {
                 const text = document.getElementById('ai-food-input').value;
-                if (!text || text.length < 3) return alert("Введите название еды");
+                if (!text || text.length < 3) return this.showToast("Введите название еды", 'error');
 
                 // Check for storage key or prompt
                 let key = localStorage.getItem('openai_key') || '';
-                // No prompt as requested
 
+                // SHOW LOADER
+                const loader = document.getElementById('ai-loader');
+                if (loader) loader.style.display = 'flex';
 
                 // Backend Call
-                alert("🤖 Отправляю запрос на сервер...");
-
                 fetch(SERVER_URL + '/analyze_food', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2879,15 +3160,18 @@
                             try { App.render(); } catch (e) { App.updateRings(); }
 
                             Modals.closeAll();
-                            alert(`✅ Добавлено: ${info.name}\n🔥 ${info.calories} ккал\n(Б:${info.protein} Ж:${info.fat} У:${info.carbs})`);
-                            document.getElementById('ai-food-input').value = ''; // Clean
+                            this.showToast(`+${info.calories} ккал: ${info.name}`);
+                            document.getElementById('ai-food-input').value = '';
                         } else {
-                            alert("🤷‍♂️ Сервер не нашел еду в тексте.");
+                            this.showToast("AI не нашел еду. Попробуй еще раз.", 'error');
                         }
                     })
                     .catch(e => {
                         console.error(e);
-                        alert("❌ Ошибка сервера: " + e.message + "\nУбедитесь, что backend запущен.");
+                        this.showToast("Ошибка сервера: " + (e.message || "Unknown error"), 'error');
+                    })
+                    .finally(() => {
+                        if (loader) loader.style.display = 'none';
                     });
             },
 
@@ -3088,6 +3372,20 @@
 
                     if (json.status === 'success' && json.data) {
                         this.data.ai_data = json.data;
+
+                        // INJECT DAY 0 (Preparation) - So Day 1 starts tomorrow
+                        if (this.data.ai_data.days && Array.isArray(this.data.ai_data.days)) {
+                            this.data.ai_data.days.unshift({
+                                day: 0,
+                                title: "Подготовка и Настрой",
+                                tasks: [
+                                    "Изучить полученную стратегию",
+                                    "Подготовить необходимые ресурсы",
+                                    "Настроиться на выполнение плана"
+                                ]
+                            });
+                        }
+
                         this.data.startDate = Date.now(); // SET START DATE FOR PROGRESSION
 
                         // Increment Counter
@@ -3191,9 +3489,14 @@
 
                     if (data.days && Array.isArray(data.days)) {
                         // Time Logic
-                        const startDate = this.data.startDate ? new Date(this.data.startDate) : new Date();
-                        const now = new Date();
-                        const diffTime = Math.abs(now - startDate);
+                        const startDateRaw = this.data.startDate ? new Date(this.data.startDate) : new Date();
+                        const nowRaw = new Date();
+
+                        // Normalize to midnight to compare calendar days
+                        const startDate = new Date(startDateRaw.getFullYear(), startDateRaw.getMonth(), startDateRaw.getDate());
+                        const now = new Date(nowRaw.getFullYear(), nowRaw.getMonth(), nowRaw.getDate());
+
+                        const diffTime = now - startDate;
                         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
                         data.days.forEach((dayObj, i) => {
@@ -3966,6 +4269,95 @@
             }, 800);
         });
     </script>
+    <!-- AI Loader & Toast -->
+    <style>
+        /* AI LOADER */
+        #ai-loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .ai-pulse-ring {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-pulse-ring::before,
+        .ai-pulse-ring::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #AF52DE;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .ai-pulse-ring::after {
+            width: 70%;
+            height: 70%;
+            border-top-color: #FFD60A;
+            animation-direction: reverse;
+            animation-duration: 1s;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #toast-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translate(-50%, -150%);
+            background: rgba(30, 30, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #toast-notification.show {
+            transform: translate(-50%, 0);
+        }
+    </style>
+
+    <div id="ai-loader">
+        <div class="ai-pulse-ring">
+            <i class="fa-solid fa-brain" style="color: #fff; font-size: 24px;"></i>
+        </div>
+        <div style="margin-top:24px; color:#fff; font-weight:700; font-size:16px; letter-spacing: 0.5px;">
+            AI АНАЛИЗИРУЕТ...
+        </div>
+    </div>
+
+    <div id="toast-notification">
+        <i class="fa-solid fa-circle-check" style="color:#30D158; font-size:20px;"></i>
+        <div id="toast-text">Успешно!</div>
+    </div>
+
 </body>
 
 </html>

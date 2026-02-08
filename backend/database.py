@@ -110,3 +110,26 @@ def create_promocode(code, value, activations):
         return False
     finally:
         conn.close()
+
+def get_stats():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    # Total Users
+    c.execute("SELECT Count(*) FROM users")
+    total = c.fetchone()[0]
+    
+    # Active Users (Balance > 0)
+    c.execute("SELECT Count(*) FROM users WHERE balance > 0")
+    active = c.fetchone()[0]
+    
+    # Strategy Users
+    c.execute("SELECT Count(*) FROM users WHERE strategy_data IS NOT NULL")
+    with_strategy = c.fetchone()[0]
+    
+    conn.close()
+    return {
+        "total": total,
+        "active": active,
+        "strategy_users": with_strategy
+    }

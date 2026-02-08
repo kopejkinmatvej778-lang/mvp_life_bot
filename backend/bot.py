@@ -16,8 +16,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Config
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL") 
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8406039171:AAHpxuxKi5vReNXpYrt5Iws3rDokoJ_gy78")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://mvp-app.amvera.io") 
 ADMIN_ID = 726618588  # Hardcoded Admin ID
 
 # Initialize

@@ -2089,14 +2089,11 @@
             <div
                 style="font-size: 12px; font-weight: 700; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
                 Опасная Зона</div>
-            <button onclick="Marathon.reset()"
-                style="width: 100%; background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); padding: 15px; border-radius: 12px; color: #FF3B30; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: background 0.2s;">
-                <i class="fa-solid fa-triangle-exclamation"></i> Сбросить Прогресс Марафона
-            </button>
+
             <button
-                onclick="const o = parseInt(localStorage.getItem('mvp_marathon_offset_days')||0); localStorage.setItem('mvp_marathon_offset_days', o+1); location.reload();"
-                style="margin-top:10px; width: 100%; background: rgba(0, 122, 255, 0.1); border: 1px solid rgba(0, 122, 255, 0.3); padding: 15px; border-radius: 12px; color: #007AFF; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: background 0.2s;">
-                <i class="fa-solid fa-forward"></i> Пропустить 24 часа (+1 день)
+                onclick="if(confirm('⚠ ВНИМАНИЕ: Это полностью удалит весь прогресс, настройки и привычки.\n\nВы уверены?')) { localStorage.clear(); window.location.reload(); }"
+                style="width: 100%; background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); padding: 15px; border-radius: 12px; color: #FF3B30; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: background 0.2s;">
+                <i class="fa-solid fa-skull"></i> СБРОСИТЬ ВСЕ ДАННЫЕ
             </button>
         </div>
 
@@ -2259,14 +2256,29 @@
                     // Critical: Ensure Marathon Data Exists
                     if (!this.data.marathon) {
                         this.data.marathon = {
-                            day: 1,
-                            unlocked: false,
-                            questsCompleted: [],
-                            baseCompleted: []
+                            started: false,
+                            startDate: null,
+                            day: 0,
+                            tasks: {} // day -> taskIds[]
                         };
                     }
+
+                    // SAFETY DEFAULTS
+                    if (!this.data.calories) this.data.calories = { current: 0, target: 2000 };
+                    if (!this.data.bio) this.data.bio = { weight: 0, height: 0, age: 0, gender: 'male' };
+
                     if (!this.data.missions) this.data.missions = [];
-                    if (!this.data.habits) this.data.habits = [];
+                    if (!this.data.habits || this.data.habits.length === 0) {
+                        this.data.habits = [
+                            { id: 1700000000001, text: 'Выпить стакан воды 💧', completed: false },
+                            { id: 1700000000002, text: 'Сделать зарядку 🤸', completed: false },
+                            { id: 1700000000003, text: 'Медитация 5 мин 🧘', completed: false },
+                            { id: 1700000000004, text: 'Чтение 15 мин 📚', completed: false },
+                            { id: 1700000000005, text: 'План на день 📝', completed: false },
+                            { id: 1700000000006, text: 'Без сахара 🚫🍬', completed: false },
+                            { id: 1700000000007, text: 'Сон 8 часов 😴', completed: false }
+                        ];
+                    }
                 }
                 console.log('🗄️ DB initialized, onboardingComplete =', this.data.onboardingComplete);
                 return this.data;
@@ -2401,36 +2413,66 @@
             },
 
             finish() {
-                // Save data
-                DB.data.goal = this.data.goal;
+                try {
+                    console.log("🏁 Finishing Onboarding...");
 
-                // Add Starter Missions
-                const starters = [
-                    { id: 'mission_bio', text: '🧬 1. Заполнить Биометрию', xp: 50 },
-                    { id: 'mission_strategy', text: '♟️ 2. Выбрать Стратегию', xp: 100 },
-                    { id: 'mission_marathon', text: '🔥 3. Начать Марафон', xp: 150 }
-                ];
+                    if (!DB.data) DB.data = {};
 
-                starters.forEach(m => {
-                    if (!DB.data.missions) DB.data.missions = [];
-                    if (!DB.data.missions.find(ex => ex.id === m.id)) {
-                        DB.data.missions.push({
-                            id: m.id,
-                            text: m.text,
-                            xp: m.xp,
-                            completed: false,
-                            type: 'one-time',
-                            isStarter: true
-                        });
+                    // 1. Save Goal
+                    if (this.data && this.data.goal) {
+                        DB.data.goal = this.data.goal;
                     }
-                });
 
-                DB.data.onboardingComplete = true;
-                DB.save();
+                    // 2. Add Starter Missions
+                    if (!DB.data.missions || !Array.isArray(DB.data.missions)) {
+                        DB.data.missions = [];
+                    }
 
-                // Hide onboarding
-                document.getElementById('view-onboarding').style.display = 'none';
-                window.location.reload();
+                    const starters = [
+                        { id: 'mission_bio', text: '🧬 1. Заполнить Биометрию', xp: 50 },
+                        { id: 'mission_strategy', text: '♟️ 2. Выбрать Стратегию', xp: 100 },
+                        { id: 'mission_marathon', text: '🔥 3. Начать Марафон', xp: 150 }
+                    ];
+
+                    starters.forEach(m => {
+                        // Check if mission with this ID exists (safe check)
+                        const exists = DB.data.missions.some(ex => ex && ex.id === m.id);
+                        if (!exists) {
+                            DB.data.missions.push({
+                                id: m.id,
+                                text: m.text,
+                                xp: m.xp,
+                                completed: false,
+                                type: 'one-time',
+                                isStarter: true
+                            });
+                        }
+                    });
+
+                    // 3. Mark Complete
+                    DB.data.onboardingComplete = true;
+                    console.log("✅ ONBOARDING COMPLETE SET TO TRUE");
+                    DB.save();
+
+                    // UI Feedback
+                    const btn = document.querySelector('#step-5 button');
+                    if (btn) {
+                        btn.innerHTML = '<i class="fa-solid fa-check"></i> ГОТОВО!';
+                        btn.style.background = '#30D158';
+                    }
+
+                    // Reload
+                    setTimeout(() => window.location.reload(), 500);
+
+                } catch (e) {
+                    console.error("❌ Onboarding Crash:", e);
+                    // FORCE COMPLETE ANYWAY
+                    if (DB && DB.data) {
+                        DB.data.onboardingComplete = true;
+                        DB.save();
+                    }
+                    window.location.reload();
+                }
             }
         };
 
@@ -2472,7 +2514,7 @@
             closeAll() { document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none'); },
             openManualFood() { this.open('modal-food'); },
             openBioSettings() {
-                const b = DB.data.bio;
+                const b = DB.data.bio || {};
                 document.getElementById('bio-inp-weight').value = b.weight || '';
                 document.getElementById('bio-inp-height').value = b.height || '';
                 document.getElementById('bio-inp-age').value = b.age || '';
@@ -2483,6 +2525,7 @@
                 this.open('modal-bio');
             },
             openCalorieEdit() {
+                if (!DB.data.calories) DB.data.calories = { target: 2000, current: 0 };
                 const n = prompt("Новая цель (ккал):", DB.data.calories.target);
                 if (n) { DB.data.calories.target = parseInt(n); DB.save(); }
             }
@@ -2621,6 +2664,66 @@
                 btn.style.pointerEvents = 'all';
             },
 
+            saveBio() {
+                try {
+                    console.log("Saving Bio...");
+                    const w = parseFloat(document.getElementById('bio-inp-weight').value) || 70;
+                    const h = parseFloat(document.getElementById('bio-inp-height').value) || 175;
+                    const a = parseFloat(document.getElementById('bio-inp-age').value) || 25;
+                    const g = document.getElementById('bio-inp-gender').value || 'male';
+                    const act = parseFloat(document.getElementById('bio-inp-activity').value) || 1.2;
+                    const goal = document.getElementById('bio-inp-goal').value || 'maintain';
+                    const sport = document.getElementById('bio-inp-sport').value || 'other';
+
+                    // Save Data
+                    if (!DB.data.bio) DB.data.bio = {};
+                    DB.data.bio = { weight: w, height: h, age: a, gender: g, activity: act, goal: goal, sport: sport };
+
+                    // Calculate TDEE
+                    let bmr = (10 * w) + (6.25 * h) - (5 * a);
+                    if (g === 'male') bmr += 5; else bmr -= 161;
+
+                    let tdee = Math.round(bmr * act);
+                    if (goal === 'lose') tdee = Math.round(tdee * 0.85);
+                    if (goal === 'gain') tdee = Math.round(tdee * 1.15);
+
+                    if (!DB.data.calories) DB.data.calories = { current: 0, target: 2000 };
+                    DB.data.calories.target = tdee;
+
+                    // Complete & REMOVE Mission
+                    if (DB.data.missions) {
+                        const mIndex = DB.data.missions.findIndex(m => m.id === 'mission_bio');
+                        if (mIndex > -1) {
+                            const award = DB.data.missions[mIndex].xp || 50;
+                            DB.data.xp = (DB.data.xp || 0) + award;
+                            DB.data.missions.splice(mIndex, 1);
+
+                            // Initialize Habits (Rituals) if empty automatically
+                            if (!DB.data.habits || DB.data.habits.length === 0) {
+                                DB.data.habits = [
+                                    { id: Date.now(), text: 'Сделать зарядку', completed: false },
+                                    { id: Date.now() + 1, text: 'Выпить стакан воды', completed: false }
+                                ];
+                            }
+
+                            alert(`✅ Данные сохранены! +${award} XP. Ритуалы добавлены.`);
+                        } else {
+                            alert('✅ Данные обновлены!');
+                        }
+                    }
+
+                    DB.save();
+                    if (typeof Modals !== 'undefined') Modals.closeAll();
+                    setTimeout(() => window.location.reload(), 300);
+
+                } catch (e) {
+                    console.error(e);
+                    alert("Error: " + e.message);
+                }
+            },
+
+
+
             completeOnboarding() {
                 DB.data.onboardingComplete = true;
                 DB.save();
@@ -2676,15 +2779,19 @@
                 this.updateRings();
 
                 // Render Food
-                document.getElementById('cal-val').innerText = DB.data.calories.current;
-                document.getElementById('cal-target').innerText = DB.data.calories.target;
-                const pct = Math.min(100, (DB.data.calories.current / DB.data.calories.target) * 100);
-                document.getElementById('cal-progress').style.width = pct + '%';
+                const cals = DB.data.calories || { current: 0, target: 2000 };
+                const bio = DB.data.bio || { weight: 0, height: 0 };
+
+                if (document.getElementById('cal-val')) document.getElementById('cal-val').innerText = cals.current;
+                if (document.getElementById('cal-target')) document.getElementById('cal-target').innerText = cals.target;
+
+                const pct = Math.min(100, (cals.current / (cals.target || 1)) * 100);
+                if (document.getElementById('cal-progress')) document.getElementById('cal-progress').style.width = pct + '%';
 
                 // Render Bio
-                document.getElementById('bio-weight').innerText = DB.data.bio.weight + ' kg';
-                document.getElementById('bio-height').innerText = DB.data.bio.height + ' cm';
-                document.getElementById('bio-tdee').innerText = DB.data.calories.target + ' kcal';
+                if (document.getElementById('bio-weight')) document.getElementById('bio-weight').innerText = (bio.weight || 0) + ' kg';
+                if (document.getElementById('bio-height')) document.getElementById('bio-height').innerText = (bio.height || 0) + ' cm';
+                if (document.getElementById('bio-tdee')) document.getElementById('bio-tdee').innerText = (cals.target || 0) + ' kcal';
 
                 this.renderProfile();
             },
@@ -2907,13 +3014,18 @@
 
             updateRings() {
                 const calc = (list) => {
-                    if (!list.length) return 0;
+                    if (!list || !list.length) return 0;
                     return (list.filter(x => x.completed).length / list.length) * 100;
                 };
-                // Simplified logic: Body=First Ritual, Mind=Second, Flow=Missions
-                const r = DB.data.rituals;
-                const ringB = r.length > 0 && r[0].completed ? 100 : 0;
-                const ringM = r.length > 1 && r[1].completed ? 100 : 0;
+
+                // Fix: Use habits (rituals is deprecated)
+                const habits = DB.data.habits || [];
+
+                // Ring 1: First Habit (Body)
+                const ringB = habits.length > 0 && habits[0].completed ? 100 : 0;
+                // Ring 2: Second Habit (Mind)
+                const ringM = habits.length > 1 && habits[1].completed ? 100 : 0;
+                // Ring 3: Missions (Flow)
                 const ringF = calc(DB.data.missions);
 
                 this.setRing('ring-body', ringB);
@@ -3465,7 +3577,7 @@
                 }
                 statusBadge.innerHTML = `
                     <div style="font-size:10px; background:rgba(255,255,255,0.1); padding:5px 12px; border-radius:12px; color:#888; font-weight:700; display:inline-block; border:1px solid rgba(255,255,255,0.1);">
-                        ${user.status.toUpperCase()} • ОСТАЛОСЬ: <span style="color:${left === 0 ? '#FF3B30' : '#fff'}">${left}</span>
+                        ${(user.status || 'pro').toUpperCase()} • ОСТАЛОСЬ: <span style="color:${left === 0 ? '#FF3B30' : '#fff'}">${left}</span>
                     </div>
                 `;
 
@@ -3883,166 +3995,177 @@
         const Marathon = {
             defaultProtocol: {
                 base: [
-                    { title: "⏰ Ранний подъем", desc: "До 07:00. Победа над кнопкой 'Отложить'." },
-                    { title: "💧 Вода (2.5л)", desc: "Пей в течение дня. Начни со стакана утром." },
-                    { title: "📚 Чтение", desc: "20 страниц нон-фикшн литературы." },
-                    { title: "📝 План на день", desc: "Составь список задач с вечера или утром." }
+                    { title: "⏰ Ранний подъем", desc: "Вставай до того, как проснутся конкуренты." },
+                    { title: "💧 Вода", desc: "Стакан воды сразу после сна. Запусти систему." },
+                    { title: "💪 Зарядка", desc: "10 минут. Разгони кровь и энергию." },
+                    { title: "📝 План", desc: "3 главные задачи на день. Делай их первыми." }
                 ],
                 days: [
                     {
-                        title: "СТАРТ ДИСЦИПЛИНЫ",
-                        briefing: "Сегодня мы закладываем фундамент. Твоя задача — вернуть контроль.",
+                        title: "1. ЧИСТЫЙ ЛИСТ",
+                        briefing: "Убираем шум, ставим цели.",
+                        explanation: "Чтобы начать новую игру, нужно понять правила. Мы убираем шум и ставим точку на карте.",
                         tasks: [
-                            { title: "📵 Цифровой детокс", desc: "1 час после пробуждения без телефона. Никаких соцсетей." },
-                            { title: "🚿 Контрастный душ", desc: "3 цикла (Горячая/Холодная). Заканчивай холодной." },
-                            { title: "🚶 Прогулка 30 мин", desc: "Без музыки и подкастов. Только ты и твои мысли." },
-                            { title: "🥗 0 сахара", desc: "Весь день без сладкого. Изучай состав продуктов." },
-                            { title: "📸 Фото 'До'", desc: "Сделай фото текущей формы. Это твоя 'Точка А'." }
+                            { title: "🧠 Правда", desc: "Выпиши 3 вещи, которые бесят. (Зачем: Нельзя исправить то, что не признаешь)" },
+                            { title: "💰 Сумма мечты", desc: "Напиши цифру дохода. (Зачем: Мозгу нужна конкретная мишень)" },
+                            { title: "💪 Зарядка", desc: "10 минут активности. (Зачем: Мгновенно запускает мозг)" },
+                            { title: "⚔️ Без TikTok", desc: "День без клипов. (Зачем: Восстанавливает фокус и дофамин)" },
+                            { title: "🚀 Видение", desc: "Опиши идеальный день через 5 лет. (Зачем: Создает подсознательную тягу)" }
                         ]
                     },
                     {
-                        title: "ЭНЕРГИЯ И ТЕЛО",
-                        briefing: "Твое тело — это машина. Залей качественное топливо.",
+                        title: "2. ЭНЕРГИЯ И ТЕЛО",
+                        briefing: "Твое тело — это аватар.",
+                        explanation: "Твое тело — это аватар в этой игре. Прокачай его характеристики.",
                         tasks: [
-                            { title: "⏳ Голодание 16/8", desc: "Пищевое окно 8 часов. 16 часов отдыха для ЖКТ." },
-                            { title: "🐸 Съесть лягушку", desc: "Сделай самое сложное дело первым. До обеда." },
-                            { title: "🏋️ Тренировка А", desc: "Силовая или кардио. Минимум 40 минут." },
-                            { title: "🥦 Зеленый ужин", desc: "Ужин только из овощей и белка. Никаких углеводов на ночь." },
-                            { title: "🧠 Изучение", desc: "20 минут изучай новый навык или иностранный язык." }
+                            { title: "💪 Челлендж", desc: "Максимум отжиманий. (Зачем: Узнай свой предел и сдвинь его)" },
+                            { title: "🧠 Полезное видео", desc: "Видео про развитие. (Зачем: Заменяем мусор на знания)" },
+                            { title: "💰 Мечта", desc: "Сохрани фото цели. (Зачем: Визуализация притягивает возможности)" },
+                            { title: "⚔️ Режим", desc: "Сон до 23:00. (Зачем: Час сна до полуночи = два после)" },
+                            { title: "💪 Вода", desc: "Стакан воды утром. (Зачем: Включает организм быстрее кофе)" }
                         ]
                     },
                     {
-                        title: "ПОРЯДОК И ФИНАНСЫ",
-                        briefing: "Порядок вокруг — порядок в голове.",
+                        title: "3. ДИСЦИПЛИНА",
+                        briefing: "Делать, когда не хочется.",
+                        explanation: "Дисциплина — это ключ к любой победе. Это способность делать, даже когда лень.",
                         tasks: [
-                            { title: "🧹 Чистое пространство", desc: "Убери на столе, в комнате, на рабочем месте." },
-                            { title: "💰 Финансовый аудит", desc: "Посчитай расходы за неделю. Отпишись от ненужных подписок." },
-                            { title: "📚 Чтение+", desc: "Читай 40 страниц вместо 20. Глубокое погружение." },
-                            { title: "😴 Сон до 23:00", desc: "Гаджеты в сторону за час до сна. Полная темнота." },
-                            { title: "📝 План на завтра", desc: "Распиши день поминутно." }
+                            { title: "🧠 Контроль речи", desc: "День без мата. (Зачем: Контроль слов = контроль мыслей)" },
+                            { title: "💪 Прогулка", desc: "30 мин пешком. (Зачем: Тишина рождает лучшие идеи)" },
+                            { title: "⚔️ Уборка", desc: "Идеальный порядок. (Зачем: Порядок снаружи = порядок внутри)" },
+                            { title: "💰 Идеи денег", desc: "5 способов заработать. (Зачем: Тренирует мозг видеть деньги)" },
+                            { title: "💪 Контрастный душ", desc: "Холодная вода 15 сек. (Зачем: Учит действовать в дискомфорте)" }
                         ]
                     },
                     {
-                        title: "ДОФАМИНОВЫЙ КОНТРОЛЬ",
-                        briefing: "Перезагрузка рецепторов удовольствия.",
+                        title: "4. ОКРУЖЕНИЕ",
+                        briefing: "Кто рядом — тот и ты.",
+                        explanation: "Ты становишься похож на тех, с кем общаешься. Выбирай окружение.",
                         tasks: [
-                            { title: "📵 Полный Детокс", desc: "Минимум соцсетей сегодня. Только рабочая коммуникация." },
-                            { title: "🏋️ Тренировка B", desc: "Интенсивная тренировка. Выйди за пределы комфорта." },
-                            { title: "📞 Звонок близким", desc: "Позвони родителям или другу. Живой разговор 15 мин." },
-                            { title: "🧘 Медитация 20 мин", desc: "Тишина и наблюдение за дыханием." }
+                            { title: "🧠 Анализ", desc: "Кто тянет вниз? (Зачем: Окружение — 50% успеха)" },
+                            { title: "⚔️ Подписка", desc: "3 успешных блога. (Зачем: Ты то, что ты потребляешь)" },
+                            { title: "💪 Планка", desc: "Максимум времени. (Зачем: Качает не только пресс, но и волю)" },
+                            { title: "💰 Копилка", desc: "Отложи 100р. (Зачем: Привычка платить сначала себе)" },
+                            { title: "🚀 Благодарность", desc: "Скажи 'спасибо'. (Зачем: Переключает мозг на изобилие)" }
                         ]
                     },
                     {
-                        title: "ФОКУС И ПРОДУКТИВНОСТЬ",
-                        briefing: "Концентрация — это суперсила 21 века.",
+                        title: "5. НАВЫКИ",
+                        briefing: "Платят за то, что умеешь.",
+                        explanation: "В новой экономике платят за навыки. Чем больше умеешь, тем дороже стоишь.",
                         tasks: [
-                            { title: "🧠 Deep Work", desc: "2 блока по 90 минут полной концентрации на одной задаче." },
-                            { title: "🚫 Нет многозадачности", desc: "Делай одно дело за раз." },
-                            { title: "🤫 Час тишины", desc: "Проведи 1 час молча, без гаджетов и музыки." },
-                            { title: "📅 План недели", desc: "Спланируй следующую неделю. Главные 3 цели." }
+                            { title: "🧠 Hard Skill", desc: "1 час учебы. (Зачем: Навыки — это рычаг дохода)" },
+                            { title: "🧠 Чтение", desc: "15 страниц. (Зачем: Чужой опыт за 15 минут)" },
+                            { title: "💪 Без сахара", desc: "День без сладкого. (Зачем: Ясная голова без 'тумана')" },
+                            { title: "💰 Цена часа", desc: "Посчитай свой час. (Зачем: Чтобы перестать его тратить)" },
+                            { title: "⚔️ Стиль", desc: "Опрятный вид. (Зачем: Внешность влияет на самооценку)" }
                         ]
                     },
                     {
-                        title: "ВЫХОД ИЗ КОМФОРТА",
-                        briefing: "Рост происходит там, где страшно или лениво.",
+                        title: "6. ХАРАКТЕР",
+                        briefing: "Правильно, а не легко.",
+                        explanation: "Характер закаляется в трудностях. Делай то, что правильно.",
                         tasks: [
-                            { title: "🚿 Ледяной душ", desc: "Только холодная вода. 2 минуты. Ты сможешь." },
-                            { title: "🚶 15,000 шагов", desc: "Активность весь день. Отказ от лифта." },
-                            { title: "🎨 Творчество", desc: "Сделай что-то руками или напиши пост/статью." },
-                            { title: "🤝 Доброе дело", desc: "Помоги кому-то бескорыстно." }
+                            { title: "💪 Преодоление", desc: "Пройди больше обычного. (Зачем: Расширяет границы возможного)" },
+                            { title: "🧠 Честность", desc: "Признай слабость. (Зачем: Признание — половина решения)" },
+                            { title: "💰 Список желаний", desc: "10 покупок. (Зачем: Топливо для мотивации)" },
+                            { title: "⚔️ Лимит экрана", desc: "Ограничь соцсети. (Зачем: Верни себе свое время)" },
+                            { title: "🚀 Добро", desc: "Помоги просто так. (Зачем: Снижает эго и радует)" }
                         ]
                     },
                     {
-                        title: "ФИНАЛ И РЕТРОСПЕКТИВА",
-                        briefing: "Закрепление результата и награда.",
+                        title: "7. ПУТЬ ВОИНА (ИТОГИ)",
+                        briefing: "Марафон, а не спринт.",
+                        explanation: "Это только начало. Путь к успеху — это марафон. Готовься к следующему уровню.",
                         tasks: [
-                            { title: "📝 Анализ недели", desc: "Что получилось? Где провалился? Выводы." },
-                            { title: "🏆 Награда", desc: "Сделай себе подарок. Массаж, баня, вкусная еда." },
-                            { title: "📸 Фото 'После'", desc: "Сравни с днем 1." },
-                            { title: "🚀 Новая Цель", desc: "Поставь цель на следующие 30 дней." }
+                            { title: "🧠 Анализ недели", desc: "Что вышло? (Зачем: Без анализа ошибки вечны)" },
+                            { title: "💰 Следующий шаг", desc: "Цель на неделю. (Зачем: Ясность ускоряет путь)" },
+                            { title: "💪 Отдых", desc: "2 часа тишины. (Зачем: Глубокая перезагрузка мозга)" },
+                            { title: "⚔️ Обещание", desc: "Не сдаваться. (Зачем: Самый важный контракт — с собой)" },
+                            { title: "🚀 Награда", desc: "Купи подарок. (Зачем: Мозг должен любить победы)" }
                         ]
                     }
                 ]
             },
 
             init: function () {
-                // 1. Ensure Persistent Data
-                if (!DB.data.marathon) {
-                    DB.data.marathon = {
-                        started: false,
-                        day: 0,
-                        questsCompleted: [],
-                        baseCompleted: [] // Legacy
-                    };
-                }
+                try {
+                    // 1. Ensure Persistent Data
+                    if (!DB.data.marathon) {
+                        DB.data.marathon = {
+                            started: false,
+                            day: 0,
+                            questsCompleted: [],
+                            baseCompleted: []
+                        };
+                    }
 
-                // 2. Load Protocol
-                if (!DB.data.marathonProtocol) {
+                    // ☢️☢️☢️ NUCLEAR RESET V4 ☢️☢️☢️
+                    const RESET_VERSION = 'RESET_ALL_FEB18_V4_NUKE';
+                    const currentVersion = localStorage.getItem('mvp_global_version');
+
+                    if (currentVersion !== RESET_VERSION) {
+                        console.warn('⚠️ EXECUTING NUCLEAR RESET V4...');
+                        localStorage.clear();
+                        if (typeof DB !== 'undefined') {
+                            DB.data = {
+                                user: {},
+                                habits: [],
+                                missions: [],
+                                marathon: { started: false, day: 0, questsCompleted: [], baseCompleted: [], version: RESET_VERSION }
+                            };
+                            DB.save();
+                        }
+                        localStorage.setItem('mvp_global_version', RESET_VERSION);
+                        window.location.reload();
+                        return;
+                    }
+
+                    // 2. Load Protocol
+                    // Ensure defaultProtocol exists
+                    if (!this.defaultProtocol) throw new Error("Protocol data missing");
                     DB.data.marathonProtocol = JSON.parse(JSON.stringify(this.defaultProtocol));
-                }
 
-                // 3. DATE-BASED LOGIC (Auto-Flow)
-                // Hardcoded Start Date: Feb 16, 2026
-                const START_DATE = new Date('2026-02-16T00:00:00');
+                    // 3. DATE-BASED LOGIC
+                    const START_DATE = new Date('2026-02-18T00:00:00');
+                    const now = new Date();
 
-                // Time Travel (Offset)
-                const offset = parseInt(localStorage.getItem('mvp_marathon_offset_days') || '0');
-                const now = new Date();
-                now.setDate(now.getDate() + offset);
-
-                // Reset hours for clean day diff
-                const startDay = new Date(START_DATE);
-                startDay.setHours(0, 0, 0, 0);
-                const currentDay = new Date(now);
-                currentDay.setHours(0, 0, 0, 0);
-
-                const diffTime = currentDay - startDay;
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-                // Day 1 starts on Feb 16. So diff=0 -> Day 1.
-                let calculatedDay = diffDays + 1;
-
-                // Clamp logic
-                if (calculatedDay < 0) calculatedDay = 0; // Pre-launch
-                // if (calculatedDay > 7) calculatedDay = 8; // Finished
-
-                // Handle Day Change
-                if (DB.data.marathon.day !== calculatedDay) {
-                    // New Day reached! Reset daily quests
-                    DB.data.marathon.questsCompleted = [];
-                    DB.data.marathon.day = calculatedDay;
-                }
-
-                // 4. Rituals Reset Logic (Fix from previous step)
-                const todayStr = now.toDateString();
-                const lastReset = DB.data.habitsLastReset || '';
-
-                if (lastReset !== todayStr) {
-                    // 1. Reset Habits
-                    if (DB.data.habits) {
-                        DB.data.habits.forEach(h => h.completed = false);
+                    // Reset Check
+                    const todayStr = now.toDateString();
+                    if (DB.data.habitsLastReset !== todayStr) {
+                        if (DB.data.habits) DB.data.habits.forEach(h => h.completed = false);
+                        if (DB.data.calories) DB.data.calories.current = 0;
+                        if (DB.data.macros) DB.data.macros = { protein: 0, fat: 0, carbs: 0 };
+                        DB.data.habitsLastReset = todayStr;
+                        DB.save();
+                        if (typeof App !== 'undefined' && App.renderHabits) App.renderHabits();
                     }
 
-                    // 2. Reset Calories & Macros
-                    if (DB.data.calories) DB.data.calories.current = 0;
-                    if (DB.data.macros) {
-                        DB.data.macros.protein = 0;
-                        DB.data.macros.fat = 0;
-                        DB.data.macros.carbs = 0;
+                    const startDay = new Date(START_DATE);
+                    startDay.setHours(0, 0, 0, 0);
+                    const currentDay = new Date(now);
+                    currentDay.setHours(0, 0, 0, 0);
+
+                    const diffTime = currentDay - startDay;
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    let calculatedDay = diffDays + 1;
+                    if (calculatedDay < 0) calculatedDay = 0;
+
+                    // Update Day
+                    if (DB.data.marathon.day !== calculatedDay) {
+                        DB.data.marathon.questsCompleted = [];
+                        DB.data.marathon.day = calculatedDay;
+                        if (calculatedDay >= 1) DB.data.marathon.started = true;
                     }
 
-                    DB.data.habitsLastReset = todayStr;
                     DB.save();
+                    this.render();
 
-                    // Sync UI
-                    if (typeof App !== 'undefined') {
-                        if (App.renderHabits) App.renderHabits();
-                        if (App.render) App.render();
-                    }
+                } catch (e) {
+                    console.error("Marathon Init Failed:", e);
+                    const el = document.getElementById('marathon-dynamic-container');
+                    if (el) el.innerHTML = `<div style="text-align:center; padding:30px; color:#FF3B30;">❌ Ошибка Марафона: ${e.message}<br><button onclick="window.location.reload()" style="margin-top:20px; padding:10px; border-radius:10px; border:1px solid #555; background:#333; color:#fff;">Повторить</button></div>`;
                 }
-
-                DB.save();
-                this.render();
             },
 
             render: function () {
@@ -4052,26 +4175,54 @@
                 const data = DB.data.marathon;
 
                 // 1. NOT STARTED (Onboarding)
+                // 1. NOT STARTED (Onboarding / Waiting)
+                // 1. NOT STARTED (Onboarding / Waiting)
                 if (!data.started) {
+                    const habitsList = DB.data.habits || [];
+                    const habitsHtml = habitsList.length > 0
+                        ? habitsList.map(h => App.createTaskHtml(h, 'habits')).join('')
+                        : '<div style="color:#666; font-size:13px; text-align:center; padding:15px; border:1px dashed #333; border-radius:10px;">Нет ритуалов. Добавьте первый.</div>';
+
                     container.innerHTML = `
-                         <div style="text-align:center; padding-top:40px;">
-                              <div style="width:100px; height:100px; background:rgba(255,59,48,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 30px; border:1px solid #FF3B30; box-shadow:0 0 30px rgba(255,59,48,0.2);">
-                                  <i class="fa-solid fa-fire" style="font-size:40px; color:#FF3B30;"></i>
-                              </div>
-                              <h1 style="font-size:28px; font-weight:800; margin-bottom:10px;">TITAN PROTOCOL</h1>
-                              <p style="color:#888; margin-bottom:40px; line-height:1.5;">7-дневный марафон. Старт 16 февраля.</p>
-                              <button class="primary-btn" onclick="Marathon.startProtocol()" style="
-                                  background: linear-gradient(135deg, #FF3B30 0%, #FF2D55 100%);
-                                  color:#fff; box-shadow:0 10px 40px rgba(255, 59, 48, 0.4); font-weight:800; text-transform:uppercase;
-                                  display: block; margin: 0 auto;">
-                                  НАЧАТЬ ТРАНСФОРМАЦИЮ
-                              </button>
+                         <div style="padding:20px; text-align:center; animation: fadeIn 0.5s; padding-bottom:100px;">
+                             <div style="font-size:60px; margin-bottom:20px; margin-top:20px;">✋</div>
+                             <h2 style="font-size:26px; font-weight:800; margin-bottom:10px; color:#fff;">СТАРТ ЗАВТРА</h2>
+                             <p style="color:#888; margin-bottom:30px;">18 Февраля</p>
+                             
+                             <div style="background:rgba(30,30,30,0.8); padding:25px; border-radius:20px; border:1px solid #333; text-align:left;">
+                                 <div style="display:flex; gap:15px; margin-bottom:15px;">
+                                     <div style="width:40px; height:40px; background:#1C1C1E; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                         <i class="fa-solid fa-hourglass-half" style="color:#FFD60A;"></i>
+                                     </div>
+                                     <div>
+                                         <div style="font-weight:700; color:#fff;">Режим ожидания</div>
+                                         <div style="font-size:13px; color:#888;">Доступ к Дню 1 закрыт.</div>
+                                     </div>
+                                 </div>
+                                 <p style="font-size:14px; color:#ccc; line-height:1.5; margin:0;">
+                                     Система автоматически разблокирует первый этап ровно в 00:00.
+                                 </p>
+                             </div>
+
+                             <!-- RITUALS SECTION -->
+                             <div style="margin-top:40px; text-align:left;">
+                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                     <h3 style="font-size:18px; font-weight:800; margin:0; letter-spacing:0.5px;">РИТУАЛЫ</h3>
+                                     <button onclick="App.addTask('habits')" style="background:rgba(255,255,255,0.1); border:none; width:32px; height:32px; border-radius:10px; color:#fff; font-size:18px; display:flex; align-items:center; justify-content:center;">+</button>
+                                 </div>
+                                 <div class="task-list">
+                                     ${habitsHtml}
+                                 </div>
+                             </div>
+                             
+                             <!-- Hidden Start Button for Debug/Emergency -->
+                             <button onclick="Marathon.startProtocol()" style="margin-top:40px; opacity:0.1; background:none; border:none; color:#555; font-size:10px;">(Force Start)</button>
                          </div>
                     `;
                     return;
                 }
 
-                // 2. WAITING FOR START (Days before Feb 16)
+                // 2. WAITING FOR START (Days before Feb 17)
                 if (data.day < 1) {
                     container.innerHTML = `
                          <div style="padding:20px; text-align:center;">
@@ -4082,7 +4233,7 @@
                                      🔥 <strong>Ритуалы уже активны:</strong> На твой главный экран добавлены 4 привычки. Начни выполнять их уже сейчас.
                                  </p>
                                  <p style="color:#ddd; line-height:1.6; margin-bottom:0;">
-                                     📅 <strong>Старт Марафона:</strong> 16 Февраля.
+                                     📅 <strong>Старт Марафона:</strong> 18 Февраля.
                                      Система автоматически откроет День 1 в 00:00.
                                  </p>
                              </div>
@@ -4104,18 +4255,27 @@
             renderActiveDay: function (data) {
                 const container = document.getElementById('marathon-dynamic-container');
                 const protocol = DB.data.marathonProtocol;
-                const dayData = protocol.days[data.day - 1]; // day 1 is index 0
+
+                // Safe index access (day 1 -> index 0)
+                let dayIndex = data.day - 1;
+                // Fallback if dayIndex out of bounds
+                if (!protocol.days[dayIndex]) dayIndex = 0;
+
+                const dayData = protocol.days[dayIndex];
 
                 if (!dayData) return;
 
                 let html = `
                     <div style="margin-bottom:20px;">
                         <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom:10px;">
-                             <div style="font-size:12px; font-weight:700; color:#FF3B30; letter-spacing:1px;">ДЕНЬ ${data.day} / 7 (16-22 ФЕВ)</div>
+                             <div style="font-size:12px; font-weight:700; color:#FF3B30; letter-spacing:1px;">ДЕНЬ ${data.day}</div>
                              <div style="font-size:12px; color:#666;">${Math.round((data.questsCompleted.length / dayData.tasks.length) * 100)}%</div>
                         </div>
-                        <h2 style="margin:0; font-size:20px;">${dayData.title}</h2>
-                        <div style="font-size:13px; color:#888; margin-top:5px; font-style:italic;">"${dayData.briefing}"</div>
+                        <h2 style="margin:0; font-size:24px; text-transform:uppercase; letter-spacing:0.5px;">${dayData.title}</h2>
+                        
+                        <div style="background:rgba(255, 59, 48, 0.1); border-left:3px solid #FF3B30; padding:10px 15px; margin-top:15px; border-radius:0 8px 8px 0;">
+                             <div style="font-size:13px; color:#ddd; font-style:italic; line-height:1.5;">"${dayData.explanation || dayData.briefing}"</div>
+                        </div>
                     </div>
                 `;
 
@@ -4260,11 +4420,25 @@
         window.onload = function () {
             App.init();
 
-            // Late Check for Modules
+            // Late Check for Modules & Force Onboarding
             setTimeout(() => {
                 if (typeof Strategy !== 'undefined') Strategy.init();
                 if (typeof Marathon !== 'undefined') Marathon.init();
-            }, 500);
+
+                // 🚨 FORCE ONBOARDING WIZARD CHECK 🚨
+                // If user just reset, they MUST see the wizard
+                if (DB.data && !DB.data.onboardingComplete) {
+                    console.log("⚡ Starting Onboarding Wizard...");
+                    const el = document.getElementById('view-onboarding');
+                    if (el) {
+                        el.style.display = 'flex';
+                        // Ensure Onboarding is init (populates grids)
+                        if (typeof Onboarding !== 'undefined' && Onboarding.init) {
+                            Onboarding.init();
+                        }
+                    }
+                }
+            }, 600);
         };
 
     </script>
@@ -4411,6 +4585,40 @@
         <i class="fa-solid fa-circle-check" style="color:#30D158; font-size:20px;"></i>
         <div id="toast-text">Успешно!</div>
     </div>
+
+    <!-- DIAGNOSTIC & AUTO-FIX -->
+    <script>
+        setTimeout(() => {
+            const container = document.getElementById('marathon-dynamic-container');
+            if (container && (container.innerText.includes('Загрузка') || container.innerText.includes('Loading'))) {
+                console.warn("⚠️ Marathon UI stuck. Attempting auto-fix...");
+
+                // FORCE RENDER WAITING SCREEN (Hardcoded)
+                container.innerHTML = `
+                     <div style="padding:40px; text-align:center; animation: fadeIn 0.5s;">
+                         <div style="font-size:60px; margin-bottom:20px;">✋</div>
+                         <h2 style="font-size:26px; font-weight:800; margin-bottom:10px; color:#fff;">СТАРТ ЗАВТРА</h2>
+                         <p style="color:#888; margin-bottom:30px;">18 Февраля</p>
+                         <div style="background:rgba(30,30,30,0.8); padding:25px; border-radius:20px; border:1px solid #333; text-align:left;">
+                             <div style="display:flex; gap:15px; margin-bottom:15px;">
+                                 <div style="width:40px; height:40px; background:#1C1C1E; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+                                     <i class="fa-solid fa-hourglass-half" style="color:#FFD60A;"></i>
+                                 </div>
+                                 <div>
+                                     <div style="font-weight:700; color:#fff;">Режим ожидания</div>
+                                     <div style="font-size:13px; color:#888;">Доступ к Дню 1 закрыт.</div>
+                                 </div>
+                             </div>
+                             <p style="font-size:14px; color:#ccc; line-height:1.5; margin:0;">
+                                 Система автоматически разблокирует первый этап ровно в 00:00. 
+                                 Возвращайся завтра, чтобы начать трансформацию.
+                             </p>
+                         </div>
+                     </div>
+                 `;
+            }
+        }, 1200);
+    </script>
 
 </body>
 

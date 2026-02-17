@@ -1,7 +1,9 @@
+
 import logging
 import asyncio
 import os
 import json
+from datetime import date
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
@@ -10,6 +12,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import database as db
+import marathon_config as marathon
 from dotenv import load_dotenv
 
 # Load .env file
@@ -201,23 +204,70 @@ async def admin_stats(message: types.Message):
 
 async def send_daily_tasks():
     if not bot: return
-    users = db.get_all_users_with_strategy()
     
+    today = date.today()
+    delta = (today - marathon.START_DATE).days + 1
+    
+    # Check if marathon is active
+    if delta < 1 or delta > 30:
+        return
+
+    # Find the current day's tasks
+    day_data = next((d for d in marathon.MARATHON_DATA if d['day'] == delta), None)
+    
+    if not day_data:
+        return
+
+    # Try different ways to get users
+    try:
+        if hasattr(db, 'get_all_users_with_strategy'):
+            users = db.get_all_users_with_strategy()
+        else:
+            # Fallback: get basic users list
+            # We assume users object is structured or accessible
+            users = db.get_all_users() 
+            if isinstance(users, dict): # if it returns dict of users
+                users = [{'user_id': uid} for uid in users.keys()]
+    except Exception as e:
+        logging.error(f"Error getting users: {e}")
+        return
+
+    clean_tasks = []
+    for t in day_data['tasks']:
+        # Format in config: "🧠 [CAT] Name: Desc (Зачем: ...)" or just "Task"
+        clean_task = t
+        if "(Зачем:" in t:
+            clean_task = t.split("(Зачем:")[0].strip()
+        elif "(Why:" in t:
+             clean_task = t.split("(Why:")[0].strip()
+            
+        clean_tasks.append(f"• {clean_task}")
+
+    tasks_str = "\n".join(clean_tasks)
+    
+    msg = (
+        f"👋 Привет! Сегодня **День {delta}**.\n\n"
+        f"🏆 **Тема:** {day_data['title']}\n\n"
+        f"Вот твои задачи:\n"
+        f"{tasks_str}\n\n"
+        f"🚀 Заходи в приложение и отмечай выполнение!"
+    )
+
     for u in users:
         try:
-            # Send daily motivation/reminder
+            user_id = u['user_id'] if isinstance(u, dict) else u
             await bot.send_message(
-                u['user_id'],
-                "🌅 **Начало дня в MVP OS**\n\nТвои задачи на сегодня уже ждут. Зайди в приложение и закрой цели марафона!\n\n👇 Нажми кнопку ниже",
+                user_id,
+                msg,
                 parse_mode="Markdown"
             )
             await asyncio.sleep(0.05) 
         except Exception as e:
-            logging.error(f"Failed to send to {u['user_id']}: {e}")
+            logging.error(f"Failed to send to user: {e}")
 
 def start_scheduler():
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_daily_tasks, 'cron', hour=7, minute=0)
+    scheduler.add_job(send_daily_tasks, 'cron', hour=8, minute=0)
     scheduler.start()
 
 # --- MAIN ---
@@ -227,10 +277,15 @@ async def start_bot():
         logging.warning("⚠️ BOT_TOKEN missing. Bot will not run.")
         return
     
-    db.init_db()
+    # db.init_db() is called in main.py, so skipping here or calling again is fine
     
-    # Reset webhook (just in case)
-    await bot.delete_webhook(drop_pending_updates=True)
+    try:
+        await bot.delete_webhook(drop_pending_updates=True)
+    except Exception:
+        pass
     
     start_scheduler()
-    await dp.start_polling(bot)
+    try:
+        await dp.start_polling(bot)
+    except Exception as e:
+        logging.error(f"Polling error: {e}")
